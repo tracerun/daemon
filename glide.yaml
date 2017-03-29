@@ -14,3 +14,4 @@ import:
   version: ^1.0
   subpackages:
   - zapcore
+- package: github.com/boltdb/bolt

@@ -1,0 +1,10 @@
+syntax = "proto3";
+
+message Meta {
+  int32 version = 1;
+  string host = 2;
+  string arch = 3;
+  string username = 4;
+  string os = 5;
+  int64 create_at = 6;
+}
