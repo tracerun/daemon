@@ -12,7 +12,7 @@ It has these top-level messages:
 	Action
 	Empty
 */
-package action
+package grpcd
 
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
