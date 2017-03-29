@@ -1,2 +1,2 @@
-# daemon
-The daemon is used to receive log actions.
+# TraceRun
+The basic command application is used to receive log actions.

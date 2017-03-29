@@ -9,7 +9,7 @@
     "tasks": [
         {
             "taskName": "run",
-            "args": ["main.go"],
+            "args": ["main.go", "--debug", "start"],
             "isBuildCommand": true
         },
         {

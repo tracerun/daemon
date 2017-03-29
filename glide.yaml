@@ -1,0 +1,18 @@
+package: .
+import:
+- package: github.com/drkaka/lg
+  version: ^1.0.0
+- package: github.com/urfave/cli
+  version: ^1.19.1
+- package: google.golang.org/grpc
+  version: ^1.2.0
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: go.uber.org/zap
+  version: ^1.0
+  subpackages:
+  - zapcore
