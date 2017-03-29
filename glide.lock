@@ -1,14 +1,10 @@
-hash: 0ff930f0f7729b382709ce2a483c14c6b95e8af87769bb941d43bdba33bcd429
-updated: 2017-03-29T10:31:52.408247+08:00
+hash: 4bc3d5f11b0f6856cfd4ee08f3bc4b02a9953d2391db6ab3d3520cb84629b5b3
+updated: 2017-03-29T15:38:23.9952776+08:00
 imports:
-- name: github.com/drkaka/lg
-  version: 699b294366df5a3f4ed00c92ed3200acde983a50
 - name: github.com/golang/protobuf
   version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
   subpackages:
   - proto
-- name: github.com/satori/go.uuid
-  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: go.uber.org/atomic

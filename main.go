@@ -3,8 +3,8 @@ package main
 import (
 	"os"
 	"tracerun/command"
+	"tracerun/lg"
 
-	"github.com/drkaka/lg"
 	"github.com/urfave/cli"
 )
 
@@ -17,16 +17,22 @@ func main() {
 	app.Flags = []cli.Flag{
 		cli.BoolFlag{
 			Name:  "debug",
-			Usage: "Run in debug level",
+			Usage: "Run in debug level.",
+		},
+		cli.BoolFlag{
+			Name:  "nostd",
+			Usage: "No need output to stderr.",
+		},
+		cli.StringFlag{
+			Name:  "o",
+			Usage: "Path for output log file.",
 		},
 	}
+
 	app.Before = func(c *cli.Context) error {
-		if c.GlobalBool("debug") {
-			lg.InitLogger(true)
-		} else {
-			lg.InitLogger(false)
-		}
-		lg.L(nil).Debug("lg initialized")
+		logPath := c.GlobalString("o")
+		lg.InitLogger(c.GlobalBool("debug"), c.GlobalBool("nostd"), logPath)
+		lg.L.Debug("logger initialized")
 		return nil
 	}
 
