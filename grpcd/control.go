@@ -3,6 +3,8 @@ package grpcd
 import (
 	"fmt"
 	"net"
+	"os"
+	"os/signal"
 	"tracerun/lg"
 
 	"go.uber.org/zap"
@@ -29,9 +31,17 @@ func Start(port int) {
 	grpcServer := grpc.NewServer()
 	RegisterActionServiceServer(grpcServer, &server{})
 
-	lg.L.Info("starting grpc service")
-	if err := grpcServer.Serve(lis); err != nil {
-		lg.L.Fatal("failed to serve grpc server", zap.Error(err))
-	}
+	go func() {
+		lg.L.Info("starting grpc service")
+
+		if err := grpcServer.Serve(lis); err != nil {
+			lg.L.Fatal("failed to serve grpc server", zap.Error(err))
+		}
+	}()
+
+	sigs := make(chan os.Signal, 1)
+	signal.Notify(sigs, os.Interrupt)
+	<-sigs
+	grpcServer.GracefulStop()
 	lg.L.Info("gRPC service stopped.")
 }
