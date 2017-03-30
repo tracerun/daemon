@@ -1,10 +1,14 @@
-hash: 4bc3d5f11b0f6856cfd4ee08f3bc4b02a9953d2391db6ab3d3520cb84629b5b3
-updated: 2017-03-29T15:38:23.9952776+08:00
+hash: 6bf698d8667b0ff4606d8c79fd871b636f3c4aef7eebc24dde3b40c8dea48f5c
+updated: 2017-03-30T11:21:07.1497336+08:00
 imports:
+- name: github.com/boltdb/bolt
+  version: e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd
 - name: github.com/golang/protobuf
   version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
   subpackages:
   - proto
+- name: github.com/oklog/ulid
+  version: d311cb43c92434ec4072dfbbda3400741d0a6337
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: go.uber.org/atomic
@@ -28,6 +32,10 @@ imports:
   - internal/timeseries
   - lex/httplex
   - trace
+- name: golang.org/x/sys
+  version: 9a7256cb28ed514b4e1e5f68959914c4c28a92e0
+  subpackages:
+  - unix
 - name: google.golang.org/grpc
   version: cdee119ee21e61eef7093a41ba148fa83585e143
   subpackages:
@@ -42,4 +50,8 @@ imports:
   - stats
   - tap
   - transport
-testImports: []
+testImports:
+- name: github.com/stretchr/testify
+  version: 4d4bfba8f1d1027c4fdbe371823030df51419987
+  subpackages:
+  - assert

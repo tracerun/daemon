@@ -4,6 +4,7 @@ import (
 	"errors"
 	"os"
 	"os/exec"
+	"tracerun/db"
 	"tracerun/grpcd"
 
 	"github.com/urfave/cli"
@@ -57,6 +58,7 @@ func action(c *cli.Context) error {
 			return err
 		}
 	} else {
+		db.CreateRWDB(c.GlobalString("db"))
 		grpcd.Start(p)
 	}
 
