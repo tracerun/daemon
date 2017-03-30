@@ -1,5 +1,5 @@
-hash: 6bf698d8667b0ff4606d8c79fd871b636f3c4aef7eebc24dde3b40c8dea48f5c
-updated: 2017-03-30T11:21:07.1497336+08:00
+hash: cf46688384916aa172b4e358965fb31acd2410e250ed90cc53836c40ecdf6ab3
+updated: 2017-03-30T16:26:20.7429025+08:00
 imports:
 - name: github.com/boltdb/bolt
   version: e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd
@@ -51,7 +51,21 @@ imports:
   - tap
   - transport
 testImports:
+- name: github.com/davecgh/go-spew
+  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
+  subpackages:
+  - spew
+- name: github.com/mattn/goveralls
+  version: 9d621f6940639bf287ecbb6f585a2c26eeba3bbe
+- name: github.com/pmezard/go-difflib
+  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
+  subpackages:
+  - difflib
 - name: github.com/stretchr/testify
   version: 4d4bfba8f1d1027c4fdbe371823030df51419987
   subpackages:
   - assert
+- name: golang.org/x/tools
+  version: d63e2b22b05a9682de336cd4802bba367ed429e7
+  subpackages:
+  - cover
