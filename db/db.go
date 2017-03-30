@@ -1,41 +1,52 @@
 package db
 
 import (
+	"errors"
 	"time"
-	"tracerun/lg"
 
 	"github.com/boltdb/bolt"
-	"go.uber.org/zap"
-)
-
-const (
-	metaTag = "__metadata__"
 )
 
 var (
+	// ErrReadOnlyDB error to do write operation
+	ErrReadOnlyDB = errors.New("ReadOnly DB can't write")
+
 	rwDB   *bolt.DB
 	readDB *bolt.DB
 )
 
 // CreateRWDB to create a read-write connection.
-func CreateRWDB(p string) {
+func CreateRWDB(p string) error {
 	var err error
 
 	rwDB, err = bolt.Open(p, 0600, &bolt.Options{Timeout: 1 * time.Second})
 	if err != nil {
-		lg.L.Fatal("can't open read-write db", zap.Error(err))
+		return err
 	}
 
+	return initMeta(rwDB)
 }
 
 // CreateReadDB to create a read-only connection.
-func CreateReadDB(p string) {
+func CreateReadDB(p string) error {
 	var err error
+	readDB, err = bolt.Open(p, 0666, &bolt.Options{ReadOnly: true, Timeout: 1 * time.Second})
+	return err
+}
 
-	readDB, err = bolt.Open(p, 0666, &bolt.Options{ReadOnly: true})
-	if err != nil {
-		lg.L.Fatal("can't open read-only db", zap.Error(err))
+// CloseDB to close db
+func CloseDB() error {
+	if rwDB != nil {
+		if err := rwDB.Close(); err != nil {
+			return err
+		}
 	}
+	if readDB != nil {
+		if err := readDB.Close(); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // EnqueueAction to enqueue the action.

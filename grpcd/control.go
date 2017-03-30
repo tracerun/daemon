@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"tracerun/db"
 	"tracerun/lg"
 
 	"go.uber.org/zap"
@@ -43,5 +44,10 @@ func Start(port int) {
 	signal.Notify(sigs, os.Interrupt)
 	<-sigs
 	grpcServer.GracefulStop()
+
+	err = db.CloseDB()
+	if err != nil {
+		lg.L.Error("error close db", zap.Error(err))
+	}
 	lg.L.Info("gRPC service stopped.")
 }

@@ -16,6 +16,9 @@ type key int
 const requestIDKey key = 0
 
 // InitLogger must be first to be called.
+// "debug" defines whether to use debug level.
+// "nostd" if true, log will not write to stderr.
+// "logPath" to add a log file destination. If "", will not log to file.
 func InitLogger(debug, nostd bool, logPath string) {
 	var cfg zap.Config
 
