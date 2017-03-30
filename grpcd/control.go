@@ -15,6 +15,10 @@ import (
 
 type server struct{}
 
+var (
+	grpcServer *grpc.Server
+)
+
 // SendAction is a method to send action to gRPC service.
 func (s *server) SendAction(ctx x.Context, in *Action) (*Empty, error) {
 	lg.L.Debug("receive action", zap.Any("action", in))
@@ -29,7 +33,7 @@ func Start(port int) {
 		lg.L.Fatal("failed to listen", zap.Error(err))
 	}
 
-	grpcServer := grpc.NewServer()
+	grpcServer = grpc.NewServer()
 	RegisterActionServiceServer(grpcServer, &server{})
 
 	go func() {
@@ -43,10 +47,15 @@ func Start(port int) {
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt)
 	<-sigs
+
+	Stop()
+}
+
+// Stop the grpc service
+func Stop() {
 	grpcServer.GracefulStop()
 
-	err = db.CloseDB()
-	if err != nil {
+	if err := db.CloseDB(); err != nil {
 		lg.L.Error("error close db", zap.Error(err))
 	}
 	lg.L.Info("gRPC service stopped.")

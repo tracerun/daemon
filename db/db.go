@@ -13,13 +13,15 @@ var (
 
 	rwDB   *bolt.DB
 	readDB *bolt.DB
+
+	timeout = 1 * time.Second
 )
 
 // CreateRWDB to create a read-write connection.
 func CreateRWDB(p string) error {
 	var err error
 
-	rwDB, err = bolt.Open(p, 0600, &bolt.Options{Timeout: 1 * time.Second})
+	rwDB, err = bolt.Open(p, 0600, &bolt.Options{Timeout: timeout})
 	if err != nil {
 		return err
 	}
@@ -30,7 +32,7 @@ func CreateRWDB(p string) error {
 // CreateReadDB to create a read-only connection.
 func CreateReadDB(p string) error {
 	var err error
-	readDB, err = bolt.Open(p, 0666, &bolt.Options{ReadOnly: true, Timeout: 1 * time.Second})
+	readDB, err = bolt.Open(p, 0666, &bolt.Options{ReadOnly: true, Timeout: timeout})
 	return err
 }
 
@@ -47,9 +49,4 @@ func CloseDB() error {
 		}
 	}
 	return nil
-}
-
-// EnqueueAction to enqueue the action.
-func EnqueueAction() {
-
 }
