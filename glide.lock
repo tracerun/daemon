@@ -1,5 +1,5 @@
-hash: 2e7f3d89a4ff4c0c98b643d7ba9e54c21276d52a8a1951ac9047f68c3d30b2f8
-updated: 2017-03-31T09:08:40.6644485+08:00
+hash: 81c1d8005dd5c4e51007c15e15dc2e54f723de88212b2a942f5b88af824a9a71
+updated: 2017-03-31T09:25:49.1119883+08:00
 imports:
 - name: github.com/boltdb/bolt
   version: e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd
@@ -9,8 +9,6 @@ imports:
   version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
   subpackages:
   - proto
-- name: github.com/oklog/ulid
-  version: d311cb43c92434ec4072dfbbda3400741d0a6337
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: go.uber.org/atomic
@@ -59,6 +57,8 @@ testImports:
   - spew
 - name: github.com/mattn/goveralls
   version: 9d621f6940639bf287ecbb6f585a2c26eeba3bbe
+- name: github.com/pborman/uuid
+  version: 1b00554d822231195d1babd97ff4a781231955c9
 - name: github.com/pmezard/go-difflib
   version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
   subpackages:

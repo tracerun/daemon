@@ -3,6 +3,7 @@ package main
 import (
 	"os"
 	"tracerun/command"
+	"tracerun/db"
 	"tracerun/lg"
 
 	"github.com/urfave/cli"
@@ -38,6 +39,8 @@ func main() {
 		logPath := c.GlobalString("o")
 		lg.InitLogger(c.GlobalBool("debug"), c.GlobalBool("nostd"), logPath)
 		lg.L.Debug("logger initialized")
+		// set db path
+		db.SetDBPath = c.GlobalString("db")
 		return nil
 	}
 

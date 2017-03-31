@@ -2,8 +2,7 @@ syntax = "proto3";
 
 message Action {
   string target = 1;
-  int32 type = 2;
-  int64 timestamp = 3;
+  uint32 active = 2;
 }
 
 message Empty {

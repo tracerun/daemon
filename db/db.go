@@ -11,42 +11,25 @@ var (
 	// ErrReadOnlyDB error to do write operation
 	ErrReadOnlyDB = errors.New("ReadOnly DB can't write")
 
-	rwDB   *bolt.DB
-	readDB *bolt.DB
-
-	timeout = 1 * time.Second
+	dbPath  string
+	timeout = 3 * time.Second
 )
 
+// SetDBPath to set db file path.
+func SetDBPath(p string) {
+	dbPath = p
+}
+
 // CreateRWDB to create a read-write connection.
-func CreateRWDB(p string) error {
-	var err error
-
-	rwDB, err = bolt.Open(p, 0600, &bolt.Options{Timeout: timeout})
+func CreateRWDB() (*bolt.DB, error) {
+	rwDB, err := bolt.Open(dbPath, 0600, &bolt.Options{Timeout: timeout})
 	if err != nil {
-		return err
+		return nil, err
 	}
-
-	return initMeta(rwDB)
+	return rwDB, initMeta(rwDB)
 }
 
 // CreateReadDB to create a read-only connection.
-func CreateReadDB(p string) error {
-	var err error
-	readDB, err = bolt.Open(p, 0666, &bolt.Options{ReadOnly: true, Timeout: timeout})
-	return err
-}
-
-// CloseDB to close db
-func CloseDB() error {
-	if rwDB != nil {
-		if err := rwDB.Close(); err != nil {
-			return err
-		}
-	}
-	if readDB != nil {
-		if err := readDB.Close(); err != nil {
-			return err
-		}
-	}
-	return nil
+func CreateReadDB() (*bolt.DB, error) {
+	return bolt.Open(dbPath, 0666, &bolt.Options{ReadOnly: true, Timeout: timeout})
 }
