@@ -1,8 +1,10 @@
-hash: cf46688384916aa172b4e358965fb31acd2410e250ed90cc53836c40ecdf6ab3
-updated: 2017-03-30T16:26:20.7429025+08:00
+hash: 2e7f3d89a4ff4c0c98b643d7ba9e54c21276d52a8a1951ac9047f68c3d30b2f8
+updated: 2017-03-31T09:08:40.6644485+08:00
 imports:
 - name: github.com/boltdb/bolt
   version: e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd
+- name: github.com/drkaka/ulid
+  version: a4078d88d430f7f5c443e60820664d0eef7a1cc8
 - name: github.com/golang/protobuf
   version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
   subpackages:

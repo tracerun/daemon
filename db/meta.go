@@ -3,7 +3,6 @@ package db
 import (
 	"errors"
 	"fmt"
-	"math/rand"
 	"os"
 	"os/user"
 	"runtime"
@@ -11,7 +10,7 @@ import (
 	"tracerun/lg"
 
 	"github.com/boltdb/bolt"
-	"github.com/oklog/ulid"
+	"github.com/drkaka/ulid"
 	"go.uber.org/zap"
 )
 
@@ -76,9 +75,7 @@ func initMeta(rw *bolt.DB) error {
 	var host string
 	var username string
 
-	now := time.Now()
-	entropy := rand.New(rand.NewSource(now.UnixNano()))
-	if id, err = ulid.New(ulid.Timestamp(now), entropy); err != nil {
+	if id, err = ulid.NewFromTime(time.Now()); err != nil {
 		return err
 	}
 	lg.L.Debug("id generated", zap.Any("id", id))

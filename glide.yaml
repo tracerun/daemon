@@ -15,8 +15,7 @@ import:
   subpackages:
   - zapcore
 - package: github.com/boltdb/bolt
-- package: github.com/oklog/ulid
-  version: ^0.3
+- package: github.com/drkaka/ulid
 testImport:
 - package: github.com/stretchr/testify
   subpackages:

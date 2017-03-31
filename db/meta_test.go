@@ -2,7 +2,6 @@ package db
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"os/user"
 	"runtime"
@@ -11,16 +10,14 @@ import (
 	"tracerun/lg"
 
 	"github.com/boltdb/bolt"
-	"github.com/oklog/ulid"
+	"github.com/drkaka/ulid"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestMetaData(t *testing.T) {
 	lg.InitLogger(true, false, "")
 
-	now := time.Now()
-	entropy := rand.New(rand.NewSource(now.UnixNano()))
-	id, err := ulid.New(ulid.Timestamp(now), entropy)
+	id, err := ulid.NewFromTime(time.Now())
 	assert.NoError(t, err, "error while creating an ULID")
 	if err != nil {
 		t.Fatal(err)
