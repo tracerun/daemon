@@ -22,8 +22,8 @@ func TestActionMethods(t *testing.T) {
 		assert.NoError(t, os.Remove(dbPath), "error while removing file")
 	}()
 
-	testActionEncoding(t)
 	testEnqueue(t)
+	testActionEncoding(t)
 	testExpireAction(t)
 	testCloseAction(t)
 }
@@ -35,12 +35,7 @@ func testActionEncoding(t *testing.T) {
 
 	err = rwDB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(actionBucket))
-		if b == nil {
-			b, err = tx.CreateBucket([]byte(actionBucket))
-			if err != nil {
-				return err
-			}
-		}
+		
 		now := time.Now()
 		// create a random target.
 		randomTarget, err := ulid.NewFromTime(now)
