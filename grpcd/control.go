@@ -25,7 +25,7 @@ func (s *server) SendAction(ctx x.Context, in *Action) (*Empty, error) {
 }
 
 // Start gRPC server.
-func Start(port int) {
+func Start(port uint) {
 	p := fmt.Sprintf(":%d", port)
 	lis, err := net.Listen("tcp", p)
 	if err != nil {

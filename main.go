@@ -4,6 +4,7 @@ import (
 	"os"
 	"tracerun/command"
 	"tracerun/db"
+	"tracerun/db/action"
 	"tracerun/lg"
 
 	"github.com/urfave/cli"
@@ -33,6 +34,11 @@ func main() {
 			Value: "tracerun.db",
 			Usage: "Path for db file.",
 		},
+		cli.UintFlag{
+			Name:  "e",
+			Value: 15,
+			Usage: "Action expiration seconds.",
+		},
 	}
 
 	app.Before = func(c *cli.Context) error {
@@ -40,7 +46,9 @@ func main() {
 		lg.InitLogger(c.GlobalBool("debug"), c.GlobalBool("nostd"), logPath)
 		lg.L.Debug("logger initialized")
 		// set db path
-		db.SetDBPath = c.GlobalString("db")
+		db.SetDBPath(c.GlobalString("db"))
+		// set action expiration
+		action.Expired = uint32(c.GlobalUint("e"))
 		return nil
 	}
 

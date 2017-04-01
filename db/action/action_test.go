@@ -35,7 +35,7 @@ func testActionEncoding(t *testing.T) {
 
 	err = rwDB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(actionBucket))
-		
+
 		now := time.Now()
 		// create a random target.
 		randomTarget, err := ulid.NewFromTime(now)
@@ -73,7 +73,7 @@ func testEnqueue(t *testing.T) {
 	assert.NoError(t, err, "error while creating random target.")
 	for i := 0; i < 5; i++ {
 		lg.L.Debug("add an action")
-		Add(randomTarget.String(), true)
+		AddToQ(randomTarget.String(), true)
 	}
 
 	time.Sleep(1 * time.Second)
@@ -84,12 +84,11 @@ func testExpireAction(t *testing.T) {
 	randomTarget, err := ulid.NewFromTime(time.Now())
 	assert.NoError(t, err, "error while creating random target.")
 
-	Add(randomTarget.String(), true)
+	AddToDB(randomTarget.String(), true)
 
-	time.Sleep(expired * time.Second)
-	time.Sleep(1500 * time.Millisecond)
-	Add(randomTarget.String(), true)
-	time.Sleep(500 * time.Millisecond)
+	time.Sleep(time.Duration(Expired) * time.Second)
+	time.Sleep(1100 * time.Millisecond)
+	AddToDB(randomTarget.String(), true)
 }
 
 func testCloseAction(t *testing.T) {
@@ -97,8 +96,6 @@ func testCloseAction(t *testing.T) {
 	randomTarget, err := ulid.NewFromTime(time.Now())
 	assert.NoError(t, err, "error while creating random target.")
 
-	Add(randomTarget.String(), true)
-	time.Sleep(1 * time.Second)
-	Add(randomTarget.String(), false)
-	time.Sleep(500 * time.Millisecond)
+	AddToDB(randomTarget.String(), true)
+	AddToDB(randomTarget.String(), false)
 }

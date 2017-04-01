@@ -1,5 +1,5 @@
 hash: 81c1d8005dd5c4e51007c15e15dc2e54f723de88212b2a942f5b88af824a9a71
-updated: 2017-03-31T09:25:49.1119883+08:00
+updated: 2017-03-31T21:36:58.283227176+08:00
 imports:
 - name: github.com/boltdb/bolt
   version: e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd
@@ -56,7 +56,7 @@ testImports:
   subpackages:
   - spew
 - name: github.com/mattn/goveralls
-  version: 9d621f6940639bf287ecbb6f585a2c26eeba3bbe
+  version: a99c5ee06aeeca2a2befc7e90b99061b1180850c
 - name: github.com/pborman/uuid
   version: 1b00554d822231195d1babd97ff4a781231955c9
 - name: github.com/pmezard/go-difflib
@@ -68,6 +68,6 @@ testImports:
   subpackages:
   - assert
 - name: golang.org/x/tools
-  version: d63e2b22b05a9682de336cd4802bba367ed429e7
+  version: d83db204cec938a53072124e16d79022316b3dc5
   subpackages:
   - cover

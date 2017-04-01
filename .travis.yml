@@ -1,22 +1,27 @@
 language: go
 sudo: false
 go:
-  - 1.7
-  - 1.8
-  - tip
+- 1.7
+- 1.8
+- tip
 env:
   global:
-    - GO15VENDOREXPERIMENT=1
-    - TEST_TIMEOUT_SCALE=10
+  - GO15VENDOREXPERIMENT=1
+  - TEST_TIMEOUT_SCALE=10
 cache:
   directories:
-    - vendor
+  - vendor
 install:
-  - go get -v github.com/Masterminds/glide 
-  - cd $GOPATH/src/github.com/Masterminds/glide && go install && cd -
-  - glide install 
-  - go install ./vendor/github.com/mattn/goveralls 
+- mv $GOPATH/src/github.com/tracerun/tracerun $GOPATH/src/
+- cd $GOPATH/src/tracerun
+- go get -v github.com/Masterminds/glide
+- cd $GOPATH/src/github.com/Masterminds/glide && go install && cd -
+- glide install
+- go install ./vendor/github.com/mattn/goveralls
 script:
-  - go test -race -v
+- go test -race -v
 after_success:
-  - goveralls -service=travis-ci 
+- goveralls -service=travis-ci
+notifications:
+  slack:
+    secure: NLDyic6tUdurGVb6/wEdBQZLgoMpS9OVgVNomYH/TrcVZKrD+J2tkjJtgGTqw4+rkQhO7Ip9KyuSSYjRd8l6yGBpOlXykEUcunlILo72td+2ZGCojdsbDJhSdtgkpKozMbRniAzhp4aal2NzDPMypNvJqeyr6/F2zksYUSL4Jchx0juJ2gCUiTxrHuCHtq18Tg2l1mzcEAfAlpj9vMive6bM03wAalA/NcGl8hYe3f05yEWcGMDwaO2I84oG1fKGy0IlS3oneODfzT/JZzFkz08btcZeWCtKNro0g9XG2i5IQb5250K9DwbknxggKgZR72r1vnv6fwfT8iE4xMd+Vv3eYGNHsdrHsDWHlC8mjURWzRMGnxA9v12H1JobfffyuZBH4ZowfCgbsrcxlt/9hopTZEQ6gGYRPl/ZNVMPH1zbaveTi0oNbkSgA4waQ3efIIEbubcra+VAV401QmyNL2js2x2ph20rUquP3xZpKMbAV6ouduhNzHuvm1XSNQD2FbOI3tM9+Cb/Wm0AFZrM007mEx673SA6wKqm3G1oTUnUo7JMv/9nP4VQ5mQlR3VUt1UiZ+Xo/ZvLAACIrhhdHQKU1kCSq9E6MCHR+ETWk55iRraRyCdAK1mbt+6/l2qRHhgnyDWrIufHuhPVcFY01okc969bKNCTk3nqaQzEQt4=

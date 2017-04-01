@@ -14,8 +14,7 @@ import (
 const (
 	actionBucket = "__actions__"
 
-	// action will be expired after 15 seconds
-	expired = 15
+	bufferCount = 100
 )
 
 type action struct {
@@ -25,29 +24,19 @@ type action struct {
 }
 
 var (
+	// Expired an action after a given seconds
+	Expired uint32 = 15
+
 	// actionChan is used to handle actions
-	actionChan chan *action
+	actionChan = make(chan *action, bufferCount)
 )
 
 func init() {
-	actionChan = make(chan *action)
 	go receiveAction()
 }
 
-func receiveAction() {
-	for a := range actionChan {
-		lg.L.Debug("action from Chan", zap.Any("tag", a.target), zap.Bool("active", a.active), zap.Uint32("ts", a.ts))
-
-		err := handle(a.target, a.active, a.ts)
-		if err != nil {
-			lg.L.Error("error create rw DB", zap.Error(err))
-		}
-	}
-	lg.L.Debug("stop to receive actions")
-}
-
-// Add to enqueue an action
-func Add(target string, active bool) {
+// AddToQ to enqueue an action
+func AddToQ(target string, active bool) {
 	var a action
 	a.target = target
 	a.active = active
@@ -57,14 +46,55 @@ func Add(target string, active bool) {
 	go func() { actionChan <- &a }()
 }
 
-// handle an action.
-func handle(target string, active bool, ts uint32) error {
+// AddToDB to directly add to database.
+func AddToDB(target string, active bool) {
 	rwDB, err := db.CreateRWDB()
 	if err != nil {
-		return err
+		lg.L.Error("error create rw DB", zap.Error(err))
 	}
 	defer rwDB.Close()
 
+	ts := uint32(time.Now().Unix())
+	lg.L.Debug("action directly to DB", zap.Any("target", target), zap.Bool("active", active), zap.Uint32("ts", ts))
+
+	if err = handle(rwDB, target, active, ts); err != nil {
+		lg.L.Error("error while handling action", zap.Error(err))
+	}
+}
+
+func receiveAction() {
+	for {
+		a := <-actionChan
+		lg.L.Debug("action from Q", zap.Any("target", a.target), zap.Bool("active", a.active), zap.Uint32("ts", a.ts))
+
+		rwDB, err := db.CreateRWDB()
+		if err != nil {
+			lg.L.Error("error create rw DB", zap.Error(err))
+		}
+		lg.L.Debug("RW DB connection created.")
+
+		if err = handle(rwDB, a.target, a.active, a.ts); err != nil {
+			lg.L.Error("error while handling action", zap.Error(err))
+		}
+	Remaining:
+		for i := 0; i < bufferCount-1; i++ {
+			select {
+			case a := <-actionChan:
+				lg.L.Debug("action from Q", zap.Any("target", a.target), zap.Bool("active", a.active), zap.Uint32("ts", a.ts))
+				if err = handle(rwDB, a.target, a.active, a.ts); err != nil {
+					lg.L.Error("error while handling action", zap.Error(err))
+				}
+			default:
+				break Remaining
+			}
+		}
+		rwDB.Close()
+		lg.L.Debug("RW DB connection closed.")
+	}
+}
+
+// handle an action.
+func handle(rwDB *bolt.DB, target string, active bool, ts uint32) error {
 	return rwDB.Update(func(tx *bolt.Tx) error {
 		var err error
 
@@ -91,7 +121,7 @@ func handle(target string, active bool, ts uint32) error {
 			if ts < last {
 				// timestamp is earlier than last active
 				long = last - start
-			} else if ts-last > expired {
+			} else if ts-last > Expired {
 				// timestamp is expired, just add 1 second
 				long = last - start + 1
 			} else {
@@ -109,7 +139,7 @@ func handle(target string, active bool, ts uint32) error {
 			// timestamp is no later than last active, do nothing
 			lg.L.Debug("earlier action", zap.String("target", target), zap.Uint32("ts", ts))
 			return nil
-		} else if ts-last > expired {
+		} else if ts-last > Expired {
 			// timestamp is expired, create a segment and a new action
 			long := last - start
 			if err := segment.Generate(tx, target, start, uint16(long)); err != nil {

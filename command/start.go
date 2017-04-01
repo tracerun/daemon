@@ -20,7 +20,7 @@ func NewStartCMD() cli.Command {
 				Name:  "d",
 				Usage: "Run in background mode.",
 			},
-			cli.IntFlag{
+			cli.UintFlag{
 				Name:  "p",
 				Value: 25234,
 				Usage: "TCP port listening gRPC requests.",
@@ -30,7 +30,7 @@ func NewStartCMD() cli.Command {
 }
 
 func action(c *cli.Context) error {
-	p := c.Int("p")
+	p := c.Uint("p")
 	if c.Bool("d") {
 		idx := 0
 		for i := 0; i < len(os.Args); i++ {
