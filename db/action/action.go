@@ -2,6 +2,7 @@ package action
 
 import (
 	"encoding/binary"
+	"errors"
 	"time"
 	"tracerun/db"
 	"tracerun/db/segment"
@@ -14,7 +15,7 @@ import (
 const (
 	actionBucket = "__actions__"
 
-	bufferCount = 100
+	bufferCount = 200
 )
 
 type action struct {
@@ -24,6 +25,9 @@ type action struct {
 }
 
 var (
+	// ErrActionValue error for action value field
+	ErrActionValue = errors.New("action value bytes wrong")
+
 	// Expired an action after a given seconds
 	Expired uint32 = 15
 
@@ -32,7 +36,38 @@ var (
 )
 
 func init() {
-	go receiveAction()
+	go receiveActions()
+}
+
+// GetAll to get all the actions.
+func GetAll() ([]string, []uint32, []uint32, error) {
+	var targets []string
+	var starts, lasts []uint32
+
+	readDB, err := db.CreateReadDB()
+	if err != nil {
+		return targets, starts, lasts, err
+	}
+	defer readDB.Close()
+
+	err = readDB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(actionBucket))
+		if b == nil {
+			return nil
+		}
+
+		return b.ForEach(func(k []byte, v []byte) error {
+			start, last, err := decodeValue(v)
+			if err != nil {
+				return err
+			}
+			targets = append(targets, string(k))
+			starts = append(starts, start)
+			lasts = append(lasts, last)
+			return nil
+		})
+	})
+	return targets, starts, lasts, err
 }
 
 // AddToQ to enqueue an action
@@ -62,7 +97,7 @@ func AddToDB(target string, active bool) {
 	}
 }
 
-func receiveAction() {
+func receiveActions() {
 	for {
 		a := <-actionChan
 		lg.L.Debug("action from Q", zap.Any("target", a.target), zap.Bool("active", a.active), zap.Uint32("ts", a.ts))
@@ -107,13 +142,17 @@ func handle(rwDB *bolt.DB, target string, active bool, ts uint32) error {
 			lg.L.Info("action bucket created")
 		}
 
-		start, last := get(b, target)
+		start, last, err := get(b, target)
+		if err != nil {
+			return err
+		}
+
 		if !active {
 			// a close action comes
 			if start == 0 {
 				// action not existed, add a 1 second segment
 				lg.L.Debug("single close action", zap.String("target", target), zap.Uint32("ts", ts))
-				return segment.Generate(tx, target, ts, uint16(1))
+				return segment.Generate(tx, target, ts, uint32(1))
 			}
 
 			// calculate how long the segment is
@@ -128,7 +167,7 @@ func handle(rwDB *bolt.DB, target string, active bool, ts uint32) error {
 				// timestamp - start
 				long = ts - start
 			}
-			return segment.Generate(tx, target, start, uint16(long))
+			return segment.Generate(tx, target, start, long)
 		}
 		// a active action comes
 		if start == 0 {
@@ -142,7 +181,7 @@ func handle(rwDB *bolt.DB, target string, active bool, ts uint32) error {
 		} else if ts-last > Expired {
 			// timestamp is expired, create a segment and a new action
 			long := last - start
-			if err := segment.Generate(tx, target, start, uint16(long)); err != nil {
+			if err := segment.Generate(tx, target, start, long); err != nil {
 				return err
 			}
 
@@ -167,14 +206,19 @@ func put(b *bolt.Bucket, target string, start, last uint32) error {
 	return b.Put([]byte(target), bs)
 }
 
+func decodeValue(bs []byte) (uint32, uint32, error) {
+	if len(bs) != 8 {
+		return 0, 0, ErrActionValue
+	}
+	return binary.LittleEndian.Uint32(bs[4:]), binary.LittleEndian.Uint32(bs), nil
+}
+
 // get an action.
 // start and last active timestamp will be returned
-func get(b *bolt.Bucket, target string) (uint32, uint32) {
-	var start, last uint32
+func get(b *bolt.Bucket, target string) (uint32, uint32, error) {
 	bs := b.Get([]byte(target))
-	if bs != nil {
-		last = binary.LittleEndian.Uint32(bs)
-		start = binary.LittleEndian.Uint32(bs[4:])
+	if bs == nil {
+		return 0, 0, nil
 	}
-	return start, last
+	return decodeValue(bs)
 }

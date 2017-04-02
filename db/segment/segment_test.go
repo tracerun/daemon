@@ -42,7 +42,7 @@ func testGeneration(t *testing.T) {
 		target := randomTarget.String()
 
 		start := uint32(now.Unix())
-		long := uint16(20)
+		long := uint32(20)
 
 		return Generate(tx, target, start, long)
 	})
@@ -71,7 +71,7 @@ func testPutGet(t *testing.T) {
 		}
 
 		start := uint32(now.Unix())
-		seg := uint16(20)
+		seg := uint32(20)
 
 		if err = put(targetB, start, seg); err != nil {
 			return err

@@ -26,6 +26,7 @@ func TestActionMethods(t *testing.T) {
 	testActionEncoding(t)
 	testExpireAction(t)
 	testCloseAction(t)
+	testGetAllActions(t)
 }
 
 func testActionEncoding(t *testing.T) {
@@ -45,7 +46,8 @@ func testActionEncoding(t *testing.T) {
 		target := randomTarget.String()
 
 		// target should not be existed
-		start, last := get(b, target)
+		start, last, err := get(b, target)
+		assert.NoError(t, err, "error while getting an action.")
 		assert.Equal(t, uint32(0), start, "start should be 0")
 		assert.Equal(t, uint32(0), last, "last should be 0")
 
@@ -58,7 +60,8 @@ func testActionEncoding(t *testing.T) {
 		}
 
 		// get back the target
-		start, last = get(b, target)
+		start, last, err = get(b, target)
+		assert.NoError(t, err, "error while getting an action.")
 		assert.Equal(t, ts, start, "start should be equal to ts")
 		assert.Equal(t, expectLast, last, "last should be equal to expectLast")
 
@@ -98,4 +101,12 @@ func testCloseAction(t *testing.T) {
 
 	AddToDB(randomTarget.String(), true)
 	AddToDB(randomTarget.String(), false)
+}
+
+func testGetAllActions(t *testing.T) {
+	targets, starts, lasts, err := GetAll()
+	assert.NoError(t, err, "error while getting all actions.")
+	assert.Len(t, targets, 4, "should have 4 targets")
+	assert.Len(t, starts, 4, "should have 4 targets")
+	assert.Len(t, lasts, 4, "should have 4 targets")
 }

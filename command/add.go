@@ -1,13 +1,14 @@
 package command
 
 import "github.com/urfave/cli"
+import "tracerun/db/action"
 
 // NewAddCMD create a add command. Used to add actions.
 func NewAddCMD() cli.Command {
 	return cli.Command{
 		Name:   "add",
 		Usage:  "add an action to db",
-		Action: action,
+		Action: addAction,
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "c",
@@ -21,7 +22,15 @@ func NewAddCMD() cli.Command {
 	}
 }
 
-func action(c *cli.Context) error {
-
+func addAction(c *cli.Context) error {
+	target := c.String("target")
+	if target == "" {
+		return cli.NewExitError("missing target, see help", 2)
+	}
+	if c.Bool("c") {
+		action.AddToDB(target, false)
+	} else {
+		action.AddToDB(target, true)
+	}
 	return nil
 }

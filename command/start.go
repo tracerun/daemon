@@ -14,7 +14,7 @@ func NewStartCMD() cli.Command {
 	return cli.Command{
 		Name:   "start",
 		Usage:  "start gRPC service",
-		Action: action,
+		Action: startAction,
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "d",
@@ -29,7 +29,7 @@ func NewStartCMD() cli.Command {
 	}
 }
 
-func action(c *cli.Context) error {
+func startAction(c *cli.Context) error {
 	p := c.Uint("p")
 	if c.Bool("d") {
 		idx := 0
