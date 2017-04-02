@@ -206,6 +206,11 @@ func put(b *bolt.Bucket, target string, start, last uint32) error {
 	return b.Put([]byte(target), bs)
 }
 
+func delete(b *bolt.Bucket, target string) error {
+	// TODO
+	return nil
+}
+
 func decodeValue(bs []byte) (uint32, uint32, error) {
 	if len(bs) != 8 {
 		return 0, 0, ErrActionValue

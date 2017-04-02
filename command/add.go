@@ -25,7 +25,7 @@ func NewAddCMD() cli.Command {
 func addAction(c *cli.Context) error {
 	target := c.String("target")
 	if target == "" {
-		return cli.NewExitError("missing target, see help", 2)
+		return cli.NewExitError("missing target, -h help", 2)
 	}
 	if c.Bool("c") {
 		action.AddToDB(target, false)

@@ -54,6 +54,8 @@ func main() {
 
 	app.Commands = []cli.Command{
 		command.NewStartCMD(),
+		command.NewAddCMD(),
+		command.NewShowCMD(),
 	}
 
 	app.Run(os.Args)
