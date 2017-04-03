@@ -2,6 +2,7 @@ package segment
 
 import (
 	"encoding/binary"
+	"tracerun/db"
 	"tracerun/lg"
 
 	"github.com/boltdb/bolt"
@@ -21,7 +22,7 @@ func Generate(tx *bolt.Tx, target string, start, seg uint32) error {
 		if b, err = tx.CreateBucket([]byte(segBucket)); err != nil {
 			return err
 		}
-		lg.L.Info("segments bucket created")
+		lg.L.Debug("segments bucket created")
 	}
 
 	// get target segment bucket
@@ -30,7 +31,7 @@ func Generate(tx *bolt.Tx, target string, start, seg uint32) error {
 		if targetB, err = b.CreateBucket([]byte(target)); err != nil {
 			return err
 		}
-		lg.L.Info("target segment bucket created", zap.String("target", target))
+		lg.L.Debug("target segment bucket created", zap.String("target", target))
 	}
 
 	long := get(targetB, start)
@@ -46,6 +47,35 @@ func Generate(tx *bolt.Tx, target string, start, seg uint32) error {
 		lg.L.Debug("segment not change", zap.String("target", target), zap.Uint32("start", start))
 	}
 	return err
+}
+
+// GetTargets to get all the targets for segments.
+func GetTargets() ([]string, error) {
+	// Readonly mode has problem on windows, so create RWDB, TODO
+	readDB, err := db.CreateRWDB()
+	if err != nil {
+		return nil, err
+	}
+	defer func() {
+		if err := readDB.Close(); err != nil {
+			lg.L.Error("fail to close db", zap.Error(err))
+		}
+	}()
+
+	var targets []string
+	err = readDB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(segBucket))
+		if b == nil {
+			return nil
+		}
+
+		return b.ForEach(func(k []byte, _ []byte) error {
+			targets = append(targets, string(k))
+			return nil
+		})
+	})
+
+	return targets, err
 }
 
 func getUInt32Bytes(ts uint32) []byte {

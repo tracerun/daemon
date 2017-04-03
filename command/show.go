@@ -2,10 +2,10 @@ package command
 
 import (
 	"encoding/json"
-	"log"
-	"tracerun/db/action"
-
+	"fmt"
 	"time"
+	"tracerun/db/action"
+	"tracerun/db/segment"
 
 	"github.com/urfave/cli"
 )
@@ -19,6 +19,10 @@ func NewShowCMD() cli.Command {
 		Flags: []cli.Flag{
 			cli.BoolFlag{
 				Name:  "actions",
+				Usage: "List all actions.",
+			},
+			cli.BoolFlag{
+				Name:  "targets",
 				Usage: "List all actions.",
 			},
 			cli.BoolFlag{
@@ -57,15 +61,34 @@ func showAction(c *cli.Context) error {
 			if err != nil {
 				return cli.NewExitError(err, 1)
 			}
-			log.Println(b)
+			fmt.Println(string(b))
 		} else {
-			log.Println("actions:")
+			fmt.Println("actions:")
 			for i := 0; i < len(targets); i++ {
+				fmt.Printf("  %s:\n", targets[i])
 				sT := time.Unix(int64(starts[i]), 0)
 				lT := time.Unix(int64(lasts[i]), 0)
-				log.Printf("\t%s:\t%s\t%s", targets[i], sT.Format("2006-01-02 15:04:05"), lT.Format("2006-01-02 15:04:05"))
+				fmt.Printf("    %s\t\t%s\n", sT.Format("2006-01-02 15:04:05"), lT.Format("2006-01-02 15:04:05"))
+			}
+		}
+	} else if c.Bool("targets") {
+		targets, err := segment.GetTargets()
+		if err != nil {
+			return cli.NewExitError(err, 1)
+		}
+		if jsonFormat {
+			b, err := json.Marshal(map[string][]string{"targets": targets})
+			if err != nil {
+				return cli.NewExitError(err, 1)
+			}
+			fmt.Println(string(b))
+		} else {
+			fmt.Println("targets:")
+			for i := 0; i < len(targets); i++ {
+				fmt.Printf("  %s\n", targets[i])
 			}
 		}
 	}
+
 	return nil
 }

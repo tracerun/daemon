@@ -1,7 +1,10 @@
 package command
 
-import "github.com/urfave/cli"
-import "tracerun/db/action"
+import (
+	"tracerun/db/action"
+
+	"github.com/urfave/cli"
+)
 
 // NewAddCMD create a add command. Used to add actions.
 func NewAddCMD() cli.Command {

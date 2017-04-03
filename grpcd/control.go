@@ -36,7 +36,7 @@ func Start(port uint) {
 	RegisterActionServiceServer(grpcServer, &server{})
 
 	go func() {
-		lg.L.Info("starting grpc service")
+		lg.L.Debug("starting grpc service")
 
 		if err := grpcServer.Serve(lis); err != nil {
 			lg.L.Fatal("failed to serve grpc server", zap.Error(err))
@@ -53,5 +53,5 @@ func Start(port uint) {
 // Stop the grpc service
 func Stop() {
 	grpcServer.GracefulStop()
-	lg.L.Info("gRPC service stopped.")
+	lg.L.Debug("gRPC service stopped.")
 }

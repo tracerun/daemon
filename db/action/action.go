@@ -211,7 +211,7 @@ func handle(rwDB *bolt.DB, target string, active bool, ts uint32) error {
 			if err != nil {
 				return err
 			}
-			lg.L.Info("action bucket created")
+			lg.L.Debug("action bucket created")
 		}
 
 		start, last, err := get(b, target)
