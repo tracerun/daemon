@@ -15,7 +15,8 @@ import (
 const (
 	actionBucket = "__actions__"
 
-	bufferCount = 200
+	bufferCount   = 200
+	tickerSeconds = 60
 )
 
 type action struct {
@@ -36,37 +37,24 @@ var (
 )
 
 func init() {
+	go checkActions()
 	go receiveActions()
 }
 
 // GetAll to get all the actions.
 func GetAll() ([]string, []uint32, []uint32, error) {
-	var targets []string
-	var starts, lasts []uint32
-
-	readDB, err := db.CreateReadDB()
+	// Readonly mode has problem on windows, so create RWDB, TODO
+	readDB, err := db.CreateRWDB()
 	if err != nil {
-		return targets, starts, lasts, err
+		return nil, nil, nil, err
 	}
-	defer readDB.Close()
-
-	err = readDB.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(actionBucket))
-		if b == nil {
-			return nil
+	defer func() {
+		if err := readDB.Close(); err != nil {
+			lg.L.Error("fail to close db", zap.Error(err))
 		}
+	}()
 
-		return b.ForEach(func(k []byte, v []byte) error {
-			start, last, err := decodeValue(v)
-			if err != nil {
-				return err
-			}
-			targets = append(targets, string(k))
-			starts = append(starts, start)
-			lasts = append(lasts, last)
-			return nil
-		})
-	})
+	targets, starts, lasts, err := getAll(readDB)
 	return targets, starts, lasts, err
 }
 
@@ -86,8 +74,13 @@ func AddToDB(target string, active bool) {
 	rwDB, err := db.CreateRWDB()
 	if err != nil {
 		lg.L.Error("error create rw DB", zap.Error(err))
+		return
 	}
-	defer rwDB.Close()
+	defer func() {
+		if err := rwDB.Close(); err != nil {
+			lg.L.Error("fail to close db", zap.Error(err))
+		}
+	}()
 
 	ts := uint32(time.Now().Unix())
 	lg.L.Debug("action directly to DB", zap.Any("target", target), zap.Bool("active", active), zap.Uint32("ts", ts))
@@ -95,6 +88,79 @@ func AddToDB(target string, active bool) {
 	if err = handle(rwDB, target, active, ts); err != nil {
 		lg.L.Error("error while handling action", zap.Error(err))
 	}
+}
+
+func checkActions() {
+	for tk := range time.Tick(tickerSeconds * time.Second) {
+		if err := oneCheck(tk); err != nil {
+			lg.L.Error("error while checking actions", zap.Error(err))
+		}
+	}
+}
+
+func oneCheck(tk time.Time) error {
+	rwDB, err := db.CreateRWDB()
+	if err != nil {
+		return err
+	}
+	defer func() {
+		if err := rwDB.Close(); err != nil {
+			lg.L.Error("fail to close db", zap.Error(err))
+		}
+	}()
+
+	now := uint32(tk.Unix())
+	lg.L.Debug("one action check", zap.String("at", time.Unix(int64(now), 0).Format("2006-01-02 15:04:05")))
+
+	var targets []string
+	var starts, lasts []uint32
+	err = rwDB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(actionBucket))
+		if b == nil {
+			return nil
+		}
+
+		return b.ForEach(func(k []byte, v []byte) error {
+			start, last, err := decodeValue(v)
+			if err != nil {
+				return err
+			}
+			if now-last > Expired {
+				targets = append(targets, string(k))
+				starts = append(starts, start)
+				lasts = append(lasts, last)
+			}
+			return nil
+		})
+	})
+
+	if err != nil {
+		return err
+	}
+
+	l := len(targets)
+	if l == 0 {
+		return nil
+	}
+
+	return rwDB.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(actionBucket))
+		if b == nil {
+			return nil
+		}
+
+		for i := 0; i < l; i++ {
+			if err := segment.Generate(tx, targets[i], starts[i], lasts[i]-starts[i]); err != nil {
+				return err
+			}
+			// delete the old action
+			if err := b.Delete([]byte(targets[i])); err != nil {
+				return err
+			}
+			lg.L.Debug("expired action", zap.String("key", string(targets[i])))
+		}
+		return nil
+	})
 }
 
 func receiveActions() {
@@ -124,8 +190,12 @@ func receiveActions() {
 				break Remaining
 			}
 		}
-		rwDB.Close()
-		lg.L.Debug("RW DB connection closed.")
+
+		if err := rwDB.Close(); err != nil {
+			lg.L.Error("fail to close db", zap.Error(err))
+		} else {
+			lg.L.Debug("RW DB connection closed.")
+		}
 	}
 }
 
@@ -203,14 +273,17 @@ func handle(rwDB *bolt.DB, target string, active bool, ts uint32) error {
 // put an action in bucket, with timestamp of start and last active.
 func put(b *bolt.Bucket, target string, start, last uint32) error {
 	lg.L.Debug("put new action", zap.String("target", target), zap.Uint32("start", start), zap.Uint32("last", last))
+	return b.Put([]byte(target), encodeValue(start, last))
+}
 
+func encodeValue(start, last uint32) []byte {
 	// bytes value: first 4 bytes is uint32 for last active, last 4 bytes for uint32 start.
 	bs := make([]byte, 8)
 	// encode to bs with start timestamp
 	binary.LittleEndian.PutUint32(bs[4:], start)
 	// encode to bs with last active timestamp
 	binary.LittleEndian.PutUint32(bs[0:], last)
-	return b.Put([]byte(target), bs)
+	return bs
 }
 
 func decodeValue(bs []byte) (uint32, uint32, error) {
@@ -228,4 +301,29 @@ func get(b *bolt.Bucket, target string) (uint32, uint32, error) {
 		return 0, 0, nil
 	}
 	return decodeValue(bs)
+}
+
+// getAll to get all the actions.
+func getAll(readDB *bolt.DB) ([]string, []uint32, []uint32, error) {
+	var targets []string
+	var starts, lasts []uint32
+
+	err := readDB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(actionBucket))
+		if b == nil {
+			return nil
+		}
+
+		return b.ForEach(func(k []byte, v []byte) error {
+			start, last, err := decodeValue(v)
+			if err != nil {
+				return err
+			}
+			targets = append(targets, string(k))
+			starts = append(starts, start)
+			lasts = append(lasts, last)
+			return nil
+		})
+	})
+	return targets, starts, lasts, err
 }

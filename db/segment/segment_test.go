@@ -7,6 +7,8 @@ import (
 	"tracerun/db"
 	"tracerun/lg"
 
+	"go.uber.org/zap"
+
 	"github.com/boltdb/bolt"
 	"github.com/drkaka/ulid"
 	"github.com/stretchr/testify/assert"
@@ -30,7 +32,11 @@ func testGeneration(t *testing.T) {
 	// create a random target.
 	rwDB, err := db.CreateRWDB()
 	assert.NoError(t, err, "error while open read-write db")
-	defer rwDB.Close()
+	defer func() {
+		if err := rwDB.Close(); err != nil {
+			lg.L.Error("fail to close db", zap.Error(err))
+		}
+	}()
 
 	err = rwDB.Update(func(tx *bolt.Tx) error {
 		now := time.Now()
@@ -52,7 +58,11 @@ func testGeneration(t *testing.T) {
 func testPutGet(t *testing.T) {
 	rwDB, err := db.CreateRWDB()
 	assert.NoError(t, err, "error while open read-write db")
-	defer rwDB.Close()
+	defer func() {
+		if err := rwDB.Close(); err != nil {
+			lg.L.Error("fail to close db", zap.Error(err))
+		}
+	}()
 
 	err = rwDB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(segBucket))

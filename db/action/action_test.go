@@ -10,13 +10,13 @@ import (
 	"github.com/boltdb/bolt"
 	"github.com/drkaka/ulid"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 func TestActionMethods(t *testing.T) {
 	lg.InitLogger(true, false, "")
 
 	dbPath := "action_test.db"
-	// set db path
 	db.SetDBPath(dbPath)
 	defer func() {
 		assert.NoError(t, os.Remove(dbPath), "error while removing file")
@@ -27,12 +27,17 @@ func TestActionMethods(t *testing.T) {
 	testExpireAction(t)
 	testCloseAction(t)
 	testGetAllActions(t)
+	waitTicker(t)
 }
 
 func testActionEncoding(t *testing.T) {
 	rwDB, err := db.CreateRWDB()
 	assert.NoError(t, err, "error while open read-write db")
-	defer rwDB.Close()
+	defer func() {
+		if err := rwDB.Close(); err != nil {
+			lg.L.Error("fail to close db", zap.Error(err))
+		}
+	}()
 
 	err = rwDB.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(actionBucket))
@@ -103,9 +108,14 @@ func testCloseAction(t *testing.T) {
 	AddToDB(target, true)
 	AddToDB(target, false)
 
-	readDB, err := db.CreateReadDB()
+	// Readonly mode has problem on windows, so create RWDB, TODO
+	readDB, err := db.CreateRWDB()
 	assert.NoError(t, err, "error while open read-only db")
-	defer readDB.Close()
+	defer func() {
+		if err := readDB.Close(); err != nil {
+			lg.L.Error("fail to close db", zap.Error(err))
+		}
+	}()
 
 	// after close, the action should be deleted.
 	err = readDB.View(func(tx *bolt.Tx) error {
@@ -127,4 +137,13 @@ func testGetAllActions(t *testing.T) {
 	assert.Len(t, targets, 3, "should have 3 targets")
 	assert.Len(t, starts, 3, "should have 3 targets")
 	assert.Len(t, lasts, 3, "should have 3 targets")
+}
+
+func waitTicker(t *testing.T) {
+	time.Sleep(time.Duration(50) * time.Second)
+	targets, starts, lasts, err := GetAll()
+	assert.NoError(t, err, "error while getting all actions.")
+	assert.Len(t, targets, 0, "should have 0 targets")
+	assert.Len(t, starts, 0, "should have 0 targets")
+	assert.Len(t, lasts, 0, "should have 0 targets")
 }
