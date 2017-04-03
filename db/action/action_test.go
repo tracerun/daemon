@@ -99,14 +99,32 @@ func testCloseAction(t *testing.T) {
 	randomTarget, err := ulid.NewFromTime(time.Now())
 	assert.NoError(t, err, "error while creating random target.")
 
-	AddToDB(randomTarget.String(), true)
-	AddToDB(randomTarget.String(), false)
+	target := randomTarget.String()
+	AddToDB(target, true)
+	AddToDB(target, false)
+
+	readDB, err := db.CreateReadDB()
+	assert.NoError(t, err, "error while open read-only db")
+	defer readDB.Close()
+
+	// after close, the action should be deleted.
+	err = readDB.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(actionBucket))
+
+		start, last, err := get(b, target)
+		assert.NoError(t, err, "error while getting an action.")
+		assert.Equal(t, uint32(0), start, "start should be 0")
+		assert.Equal(t, uint32(0), last, "last should be 0")
+
+		return nil
+	})
+	assert.NoError(t, err, "error while testing.")
 }
 
 func testGetAllActions(t *testing.T) {
 	targets, starts, lasts, err := GetAll()
 	assert.NoError(t, err, "error while getting all actions.")
-	assert.Len(t, targets, 4, "should have 4 targets")
-	assert.Len(t, starts, 4, "should have 4 targets")
-	assert.Len(t, lasts, 4, "should have 4 targets")
+	assert.Len(t, targets, 3, "should have 3 targets")
+	assert.Len(t, starts, 3, "should have 3 targets")
+	assert.Len(t, lasts, 3, "should have 3 targets")
 }

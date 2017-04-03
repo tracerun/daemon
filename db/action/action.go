@@ -102,6 +102,7 @@ func receiveActions() {
 		a := <-actionChan
 		lg.L.Debug("action from Q", zap.Any("target", a.target), zap.Bool("active", a.active), zap.Uint32("ts", a.ts))
 
+		// create a readwrite db.
 		rwDB, err := db.CreateRWDB()
 		if err != nil {
 			lg.L.Error("error create rw DB", zap.Error(err))
@@ -134,6 +135,7 @@ func handle(rwDB *bolt.DB, target string, active bool, ts uint32) error {
 		var err error
 
 		b := tx.Bucket([]byte(actionBucket))
+		// If actions bucket not existed, create one.
 		if b == nil {
 			b, err = tx.CreateBucket([]byte(actionBucket))
 			if err != nil {
@@ -167,9 +169,14 @@ func handle(rwDB *bolt.DB, target string, active bool, ts uint32) error {
 				// timestamp - start
 				long = ts - start
 			}
-			return segment.Generate(tx, target, start, long)
+			err = segment.Generate(tx, target, start, long)
+			if err != nil {
+				return err
+			}
+			// delete the old action
+			return b.Delete([]byte(target))
 		}
-		// a active action comes
+		// an active action comes
 		if start == 0 {
 			// action not existed, create the action
 			return put(b, target, ts, ts+1)
@@ -204,11 +211,6 @@ func put(b *bolt.Bucket, target string, start, last uint32) error {
 	// encode to bs with last active timestamp
 	binary.LittleEndian.PutUint32(bs[0:], last)
 	return b.Put([]byte(target), bs)
-}
-
-func delete(b *bolt.Bucket, target string) error {
-	// TODO
-	return nil
 }
 
 func decodeValue(bs []byte) (uint32, uint32, error) {
