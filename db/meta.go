@@ -7,10 +7,10 @@ import (
 	"os/user"
 	"runtime"
 	"time"
-	"tracerun/lg"
 
 	"github.com/boltdb/bolt"
 	"github.com/drkaka/ulid"
+	"github.com/tracerun/tracerun/lg"
 	"go.uber.org/zap"
 )
 

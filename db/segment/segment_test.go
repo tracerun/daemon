@@ -4,14 +4,13 @@ import (
 	"os"
 	"testing"
 	"time"
-	"tracerun/db"
-	"tracerun/lg"
-
-	"go.uber.org/zap"
 
 	"github.com/boltdb/bolt"
 	"github.com/drkaka/ulid"
 	"github.com/stretchr/testify/assert"
+	"github.com/tracerun/tracerun/db"
+	"github.com/tracerun/tracerun/lg"
+	"go.uber.org/zap"
 )
 
 func TestSegmentMethods(t *testing.T) {

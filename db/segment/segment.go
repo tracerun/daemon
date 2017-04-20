@@ -2,10 +2,10 @@ package segment
 
 import (
 	"encoding/binary"
-	"tracerun/db"
-	"tracerun/lg"
 
 	"github.com/boltdb/bolt"
+	"github.com/tracerun/tracerun/db"
+	"github.com/tracerun/tracerun/lg"
 	"go.uber.org/zap"
 )
 

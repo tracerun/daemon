@@ -2,11 +2,11 @@ package main
 
 import (
 	"os"
-	"tracerun/command"
-	"tracerun/db"
-	"tracerun/db/action"
-	"tracerun/lg"
 
+	"github.com/tracerun/tracerun/command"
+	"github.com/tracerun/tracerun/db"
+	"github.com/tracerun/tracerun/db/action"
+	"github.com/tracerun/tracerun/lg"
 	"github.com/urfave/cli"
 )
 

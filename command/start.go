@@ -4,8 +4,8 @@ import (
 	"errors"
 	"os"
 	"os/exec"
-	"tracerun/grpcd"
 
+	"github.com/tracerun/tracerun/grpcd"
 	"github.com/urfave/cli"
 )
 

@@ -7,11 +7,11 @@ import (
 	"runtime"
 	"testing"
 	"time"
-	"tracerun/lg"
 
 	"github.com/boltdb/bolt"
 	"github.com/drkaka/ulid"
 	"github.com/stretchr/testify/assert"
+	"github.com/tracerun/tracerun/lg"
 )
 
 func TestMetaData(t *testing.T) {

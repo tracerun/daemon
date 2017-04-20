@@ -5,8 +5,8 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"tracerun/lg"
 
+	"github.com/tracerun/tracerun/lg"
 	"go.uber.org/zap"
 	x "golang.org/x/net/context"
 	"google.golang.org/grpc"

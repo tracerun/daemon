@@ -4,11 +4,11 @@ import (
 	"encoding/binary"
 	"errors"
 	"time"
-	"tracerun/db"
-	"tracerun/db/segment"
-	"tracerun/lg"
 
 	"github.com/boltdb/bolt"
+	"github.com/tracerun/tracerun/db"
+	"github.com/tracerun/tracerun/db/segment"
+	"github.com/tracerun/tracerun/lg"
 	"go.uber.org/zap"
 )
 

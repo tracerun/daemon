@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"time"
-	"tracerun/db/action"
-	"tracerun/db/segment"
 
+	"github.com/tracerun/tracerun/db/action"
+	"github.com/tracerun/tracerun/db/segment"
 	"github.com/urfave/cli"
 )
 

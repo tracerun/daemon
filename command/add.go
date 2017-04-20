@@ -1,8 +1,7 @@
 package command
 
 import (
-	"tracerun/db/action"
-
+	"github.com/tracerun/tracerun/db/action"
 	"github.com/urfave/cli"
 )
 
