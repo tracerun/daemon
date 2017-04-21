@@ -1,26 +1,16 @@
 package socket
 
 import (
-	"net"
 	"testing"
+
+	"github.com/tracerun/tracerun/lg"
 )
 
 func TestSocket(t *testing.T) {
-	port := ":8880"
-	t.Logf("starting at %s", port)
-	ln, err := net.Listen("tcp", port)
-	if err != nil {
-		// handle error
-	}
-	for {
-		conn, err := ln.Accept()
-		if err != nil {
-			// handle error
-		}
-		go handleConn(&conn)
-	}
-}
+	lg.InitLogger(true, false, "")
 
-func handleConn(c *net.Conn) {
+	port := uint16(8880)
+	s := NewServer(port, nil)
 
+	s.Start()
 }

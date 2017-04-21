@@ -1,5 +1,5 @@
 hash: 81c1d8005dd5c4e51007c15e15dc2e54f723de88212b2a942f5b88af824a9a71
-updated: 2017-03-31T21:36:58.283227176+08:00
+updated: 2017-04-21T10:32:46.3395709+08:00
 imports:
 - name: github.com/boltdb/bolt
   version: e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd
@@ -12,9 +12,9 @@ imports:
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: go.uber.org/atomic
-  version: 3b8db5e93c4c02efbc313e17b2e796b0914a01fb
+  version: 4e336646b2ef9fc6e47be8e21594178f98e5ebcf
 - name: go.uber.org/zap
-  version: 4257c7cf05477d92ec25c31cfd3d60e89575f18a
+  version: 1550bc05539134bbf8612a35f34a79ab8bf34ee3
   subpackages:
   - buffer
   - internal/bufferpool
@@ -33,11 +33,11 @@ imports:
   - lex/httplex
   - trace
 - name: golang.org/x/sys
-  version: 9a7256cb28ed514b4e1e5f68959914c4c28a92e0
+  version: ea9bcade75cb975a0b9738936568ab388b845617
   subpackages:
   - unix
 - name: google.golang.org/grpc
-  version: cdee119ee21e61eef7093a41ba148fa83585e143
+  version: 8050b9cbc271307e5a716a9d782803d09b0d6f2d
   subpackages:
   - codes
   - credentials
@@ -56,7 +56,7 @@ testImports:
   subpackages:
   - spew
 - name: github.com/mattn/goveralls
-  version: a99c5ee06aeeca2a2befc7e90b99061b1180850c
+  version: 9d621f6940639bf287ecbb6f585a2c26eeba3bbe
 - name: github.com/pborman/uuid
   version: 1b00554d822231195d1babd97ff4a781231955c9
 - name: github.com/pmezard/go-difflib
@@ -68,6 +68,6 @@ testImports:
   subpackages:
   - assert
 - name: golang.org/x/tools
-  version: d83db204cec938a53072124e16d79022316b3dc5
+  version: c853fd576988aeebd3665f6224972f1379960013
   subpackages:
   - cover
