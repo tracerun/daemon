@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"time"
 
 	"github.com/tracerun/tracerun/lg"
 	"go.uber.org/zap"
@@ -12,6 +13,7 @@ import (
 
 const (
 	headerBytes = 3
+	readTimeout = 5
 )
 
 // RouteFunc to route handlers
@@ -39,6 +41,7 @@ func (s *Server) Start() error {
 	}
 
 	port := fmt.Sprintf(":%d", s.port)
+	// net.ListenUDP("udp", laddr*net.UDPAddr)
 	ln, err := net.Listen("tcp", port)
 	if err != nil {
 		return err
@@ -49,6 +52,7 @@ func (s *Server) Start() error {
 
 	for {
 		conn, err := ln.Accept()
+
 		if err != nil {
 			lg.L.Error("error accept connection", zap.Error(err))
 		}
@@ -74,18 +78,38 @@ func (s *Server) handleConn(c net.Conn) {
 	}()
 
 	for {
+		// read header
 		count, route, err := readHeader(c)
+
 		if err != nil {
+			if err == io.EOF { // may be closed by client
+				break
+			}
+			if neterr, ok := err.(net.Error); ok && neterr.Timeout() { // timeout
+				break
+			}
 			lg.L.Error("error to read header", zap.Error(err))
 		}
-		lg.L.Debug("one", zap.Uint8("route", route), zap.Uint16("count", count))
+		lg.L.Debug("header", zap.Uint8("route", route), zap.Uint16("count", count))
 
-		bytes, err := readData(c, count)
-		if err != nil {
-			lg.L.Error("error to read data", zap.Error(err))
+		// read data
+		var bytes []byte
+		if count > 0 {
+			bytes, err = readData(c, count)
+
+			if err != nil {
+				if err == io.EOF { // may be closed by client
+					break
+				}
+				if neterr, ok := err.(net.Error); ok && neterr.Timeout() { // timeout
+					break
+				}
+				lg.L.Error("error to read data", zap.Error(err))
+			}
+			lg.L.Debug("data", zap.Binary("data", bytes))
 		}
-		lg.L.Debug("data", zap.Binary("data", bytes))
 
+		// get routed function
 		fn, ok := s.router[route]
 		if !ok {
 			lg.L.Warn("not found")
@@ -93,6 +117,11 @@ func (s *Server) handleConn(c net.Conn) {
 			fn(bytes, c)
 		}
 	}
+
+	if err := c.Close(); err != nil {
+		lg.L.Error("error close", zap.Error(err))
+	}
+	lg.L.Debug("connection closed")
 }
 
 // readHeader to read header containing data count and route info
@@ -100,15 +129,19 @@ func readHeader(c net.Conn) (uint16, uint8, error) {
 	byteCount := uint16(0)
 	route := uint8(0)
 
+	if err := c.SetReadDeadline(time.Now().Add(readTimeout * time.Second)); err != nil {
+		return byteCount, route, err
+	}
+
 	buf := make([]byte, headerBytes)
 	n, err := io.ReadFull(c, buf)
-	n, err := c.Read(buf)
-	if n != headerBytes {
-		return byteCount, route, fmt.Errorf("read header wrong")
-	}
 	if err != nil {
 		return byteCount, route, err
 	}
+	if n != headerBytes {
+		return byteCount, route, fmt.Errorf("read header wrong")
+	}
+
 	byteCount = binary.LittleEndian.Uint16(buf)
 	route = uint8(buf[2])
 	return byteCount, route, nil
@@ -117,7 +150,16 @@ func readHeader(c net.Conn) (uint16, uint8, error) {
 // readData to read certain amount of bytes
 func readData(c net.Conn, count uint16) ([]byte, error) {
 	buf := make([]byte, count)
+
+	// set read timeout
+	if err := c.SetReadDeadline(time.Now().Add(readTimeout * time.Second)); err != nil {
+		return buf, err
+	}
+
 	n, err := io.ReadFull(c, buf)
+	if err != nil {
+		return buf, err
+	}
 	if n != int(count) {
 		return buf, fmt.Errorf("read data length wrong")
 	}
