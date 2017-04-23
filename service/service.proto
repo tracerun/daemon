@@ -1,0 +1,6 @@
+syntax = "proto3";
+package service;
+message Action {
+  string target = 1;
+  bool active = 2;
+}

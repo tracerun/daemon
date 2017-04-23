@@ -1,7 +1,6 @@
-package socket
+package service
 
 import (
-	"encoding/binary"
 	"fmt"
 	"io"
 	"net"
@@ -12,30 +11,26 @@ import (
 )
 
 const (
-	headerBytes = 3
-	readTimeout = 5
+	readTimeout = 30
 )
 
-// RouteFunc to route handlers
-type RouteFunc func([]byte, io.Writer)
-
-// Server to define a socket server
-type Server struct {
+// TCPServer to define a TCP server
+type TCPServer struct {
 	port   uint16
 	router map[uint8]RouteFunc
 	ln     net.Listener
 }
 
-// NewServer to create a server instance
-func NewServer(port uint16, router map[uint8]RouteFunc) *Server {
-	return &Server{
+// NewTCPServer to create a TCP server instance
+func NewTCPServer(port uint16, router map[uint8]RouteFunc) *TCPServer {
+	return &TCPServer{
 		port:   port,
 		router: router,
 	}
 }
 
 // Start the server
-func (s *Server) Start() error {
+func (s *TCPServer) Start() error {
 	if s.ln != nil {
 		return fmt.Errorf("already started")
 	}
@@ -63,14 +58,14 @@ func (s *Server) Start() error {
 }
 
 // Stop the server
-func (s *Server) Stop() error {
+func (s *TCPServer) Stop() error {
 	if s.ln != nil {
 		return s.ln.Close()
 	}
 	return nil
 }
 
-func (s *Server) handleConn(c net.Conn) {
+func (s *TCPServer) handleConn(c net.Conn) {
 	defer func() {
 		if r := recover(); r != nil {
 			lg.L.Warn("recovered", zap.Any("error", r), zap.Stack("info"))
@@ -79,6 +74,7 @@ func (s *Server) handleConn(c net.Conn) {
 
 	for {
 		// read header
+		c.SetReadDeadline(time.Now().Add(readTimeout * time.Second))
 		count, route, err := readHeader(c)
 
 		if err != nil {
@@ -95,6 +91,7 @@ func (s *Server) handleConn(c net.Conn) {
 		// read data
 		var bytes []byte
 		if count > 0 {
+			c.SetReadDeadline(time.Now().Add(readTimeout * time.Second))
 			bytes, err = readData(c, count)
 
 			if err != nil {
@@ -122,46 +119,4 @@ func (s *Server) handleConn(c net.Conn) {
 		lg.L.Error("error close", zap.Error(err))
 	}
 	lg.L.Debug("connection closed")
-}
-
-// readHeader to read header containing data count and route info
-func readHeader(c net.Conn) (uint16, uint8, error) {
-	byteCount := uint16(0)
-	route := uint8(0)
-
-	if err := c.SetReadDeadline(time.Now().Add(readTimeout * time.Second)); err != nil {
-		return byteCount, route, err
-	}
-
-	buf := make([]byte, headerBytes)
-	n, err := io.ReadFull(c, buf)
-	if err != nil {
-		return byteCount, route, err
-	}
-	if n != headerBytes {
-		return byteCount, route, fmt.Errorf("read header wrong")
-	}
-
-	byteCount = binary.LittleEndian.Uint16(buf)
-	route = uint8(buf[2])
-	return byteCount, route, nil
-}
-
-// readData to read certain amount of bytes
-func readData(c net.Conn, count uint16) ([]byte, error) {
-	buf := make([]byte, count)
-
-	// set read timeout
-	if err := c.SetReadDeadline(time.Now().Add(readTimeout * time.Second)); err != nil {
-		return buf, err
-	}
-
-	n, err := io.ReadFull(c, buf)
-	if err != nil {
-		return buf, err
-	}
-	if n != int(count) {
-		return buf, fmt.Errorf("read data length wrong")
-	}
-	return buf, err
 }
