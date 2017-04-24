@@ -28,29 +28,32 @@ type act struct {
 func receiveActions() {
 	for {
 		a := <-actionChan
-		lg.L.Debug("action from Q", zap.Any("target", a.target), zap.Bool("active", a.active), zap.Uint32("ts", a.ts))
-
+		addOneAction(a)
 	Remaining:
 		for i := 0; i < bufferCount-1; i++ {
 			select {
 			case a := <-actionChan:
-				lg.L.Debug("action from Q", zap.Any("target", a.target), zap.Bool("active", a.active), zap.Uint32("ts", a.ts))
-
+				addOneAction(a)
 			default:
 				break Remaining
 			}
 		}
+	}
+}
 
-		// TODO write file
+func addOneAction(a *act) {
+	lg.L.Debug("action from Q", zap.Any("target", a.target), zap.Bool("active", a.active), zap.Uint32("ts", a.ts))
+	if err := db.AddAction(a.target, a.active, a.ts); err != nil {
+		lg.L.Error("error add action", zap.Error(err))
 	}
 }
 
 func checkActions() {
-	// for tk := range time.Tick(tickerSeconds * time.Second) {
-	// 	if err := oneCheck(tk); err != nil {
-	// 		lg.L.Error("error while checking actions", zap.Error(err))
-	// 	}
-	// }
+	for _ = range time.Tick(tickerSeconds * time.Second) {
+		if err := db.CheckExpirations(); err != nil {
+			lg.L.Error("error while checking actions", zap.Error(err))
+		}
+	}
 }
 
 // ping uint8(0) used to extend readtimeout

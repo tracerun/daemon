@@ -1,14 +1,22 @@
-hash: 81c1d8005dd5c4e51007c15e15dc2e54f723de88212b2a942f5b88af824a9a71
-updated: 2017-04-21T10:32:46.3395709+08:00
+hash: fa302340a7743f75d19cdb0f3f46844e8fd3fb55bbd62de21cd6adfbbfbe7e1c
+updated: 2017-04-24T14:17:25.9128482+08:00
 imports:
 - name: github.com/boltdb/bolt
   version: e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd
 - name: github.com/drkaka/ulid
   version: a4078d88d430f7f5c443e60820664d0eef7a1cc8
+- name: github.com/gogo/protobuf
+  version: 7efa791bd276fd4db00867cbd982b552627c24cb
+  subpackages:
+  - proto
 - name: github.com/golang/protobuf
   version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
   subpackages:
   - proto
+- name: github.com/tracerun/locker
+  version: 3d6a08b077973af7fcd359a42568e518fc429dae
+- name: github.com/tracerun/tdb
+  version: 6aa485dc1c7b70f0f50193297390b900e260b34f
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: go.uber.org/atomic
@@ -32,6 +40,10 @@ imports:
   - internal/timeseries
   - lex/httplex
   - trace
+- name: golang.org/x/sync
+  version: de49d9dcd27d4f764488181bea099dfe6179bcf0
+  subpackages:
+  - errgroup
 - name: golang.org/x/sys
   version: ea9bcade75cb975a0b9738936568ab388b845617
   subpackages:

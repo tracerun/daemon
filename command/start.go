@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/tracerun/tracerun/grpcd"
+	"github.com/tracerun/tracerun/service"
 	"github.com/urfave/cli"
 )
 
@@ -13,7 +13,7 @@ import (
 func NewStartCMD() cli.Command {
 	return cli.Command{
 		Name:   "start",
-		Usage:  "start gRPC service",
+		Usage:  "start TCP service",
 		Action: startAction,
 		Flags: []cli.Flag{
 			cli.BoolFlag{
@@ -22,7 +22,7 @@ func NewStartCMD() cli.Command {
 			},
 			cli.UintFlag{
 				Name:  "p",
-				Value: 25234,
+				Value: 19869,
 				Usage: "TCP port listening gRPC requests.",
 			},
 		},
@@ -57,7 +57,7 @@ func startAction(c *cli.Context) error {
 			return err
 		}
 	} else {
-		grpcd.Start(p)
+		service.Start(uint16(p), c.GlobalString("db"))
 	}
 
 	return nil

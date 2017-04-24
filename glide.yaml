@@ -1,4 +1,4 @@
-package: .
+package: github.com/tracerun/tracerun
 import:
 - package: github.com/urfave/cli
   version: ^1.19.1
@@ -16,6 +16,8 @@ import:
   - zapcore
 - package: github.com/boltdb/bolt
 - package: github.com/drkaka/ulid
+- package: github.com/tracerun/tdb
+  version: "*"
 testImport:
 - package: github.com/stretchr/testify
   subpackages:

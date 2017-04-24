@@ -7,26 +7,36 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/tracerun/tdb"
 	"github.com/tracerun/tracerun/lg"
-	"go.uber.org/zap"
 )
 
 const (
 	headerBytes = 3
 )
 
+var (
+	db *tdb.TDB
+)
+
 // RouteFunc to route handlers
 type RouteFunc func([]byte, io.Writer)
 
 // Start service
-func Start(port uint16) {
+func Start(port uint16, dbFolder string) {
 	go receiveActions()
 	go checkActions()
+
+	var err error
+	db, err = tdb.Open(dbFolder)
+	if err != nil {
+		panic(err)
+	}
 
 	s := NewTCPServer(port, getRouter())
 
 	if err := s.Start(); err != nil {
-		lg.L.Error("error start service", zap.Error(err))
+		panic(err)
 	}
 
 	sigs := make(chan os.Signal, 1)
