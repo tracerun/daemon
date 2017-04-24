@@ -78,13 +78,8 @@ func (s *TCPServer) handleConn(c net.Conn) {
 		count, route, err := readHeader(c)
 
 		if err != nil {
-			if err == io.EOF { // may be closed by client
-				break
-			}
-			if neterr, ok := err.(net.Error); ok && neterr.Timeout() { // timeout
-				break
-			}
-			lg.L.Error("error to read header", zap.Error(err))
+			recordConnError(err)
+			break
 		}
 		lg.L.Debug("header", zap.Uint8("route", route), zap.Uint16("count", count))
 
@@ -95,13 +90,8 @@ func (s *TCPServer) handleConn(c net.Conn) {
 			bytes, err = readData(c, count)
 
 			if err != nil {
-				if err == io.EOF { // may be closed by client
-					break
-				}
-				if neterr, ok := err.(net.Error); ok && neterr.Timeout() { // timeout
-					break
-				}
-				lg.L.Error("error to read data", zap.Error(err))
+				recordConnError(err)
+				break
 			}
 			lg.L.Debug("data", zap.Binary("data", bytes))
 		}
@@ -119,4 +109,21 @@ func (s *TCPServer) handleConn(c net.Conn) {
 		lg.L.Error("error close", zap.Error(err))
 	}
 	lg.L.Debug("connection closed")
+}
+
+func recordConnError(err error) {
+	if err == io.EOF {
+		lg.L.Debug("EOF")
+		return
+	}
+	if neterr, ok := err.(net.Error); ok && neterr.Timeout() {
+		lg.L.Debug("timeout")
+		return
+	}
+	if _, ok := err.(*net.OpError); ok {
+		lg.L.Debug("operror")
+		return
+	}
+
+	lg.L.Error("error to read data", zap.Error(err))
 }
