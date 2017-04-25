@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"reflect"
+	"runtime"
 	"time"
 
 	"github.com/tracerun/tracerun/lg"
@@ -101,6 +103,7 @@ func (s *TCPServer) handleConn(c net.Conn) {
 		if !ok {
 			lg.L.Warn("not found")
 		} else {
+			lg.L.Debug(runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name())
 			fn(bytes, c)
 		}
 	}

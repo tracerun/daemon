@@ -1,6 +1,20 @@
 syntax = "proto3";
 package service;
+
 message Action {
   string target = 1;
   bool active = 2;
+}
+
+message AllActions {
+  message Act {
+    string target = 1;
+    uint32 start = 2;
+    uint32 last = 3;
+  }
+  repeated Act actions = 1;
+}
+
+message ErrorMessage {
+  string message = 1;
 }

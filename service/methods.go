@@ -56,14 +56,16 @@ func checkActions() {
 	}
 }
 
-// ping uint8(0) used to extend readtimeout
-func ping(b []byte, w io.Writer) {
-	lg.L.Debug("ping")
+// exit uint8(0) to stop the server
+func exit(b []byte, w io.Writer) {
+	stopChan <- true
 }
 
-// action to receive action income.
+// ping uint8(1) used to extend readtimeout
+func ping(b []byte, w io.Writer) {}
+
+// action uint8(2) to receive action income.
 func action(b []byte, w io.Writer) {
-	lg.L.Debug("action")
 	var ac Action
 	if err := proto.Unmarshal(b, &ac); err != nil {
 		lg.L.Error("error parse action", zap.Error(err))
@@ -78,9 +80,34 @@ func action(b []byte, w io.Writer) {
 	go func() { actionChan <- &a }()
 }
 
-func exit(b []byte, w io.Writer) {
-	lg.L.Debug("exit")
-	stopChan <- true
+// getActions uint8(3) to get all actions
+func getActions(b []byte, w io.Writer) {
+	var all AllActions
+	targets, starts, lasts, err := db.GetActions()
+	if err != nil {
+		lg.L.Error("error getting actions", zap.Error(err))
+		WriteErrorMessage(err.Error(), w)
+		return
+	}
+
+	for i := 0; i < len(targets); i++ {
+		all.Actions = append(all.Actions, &AllActions_Act{
+			Target: targets[i],
+			Start:  starts[i],
+			Last:   lasts[i],
+		})
+	}
+
+	buf, err := proto.Marshal(&all)
+	if err != nil {
+		WriteErrorMessage(err.Error(), w)
+		return
+	}
+
+	headerBuf := GenerateHeaderBuf(uint16(len(buf)), uint8(3))
+	if _, err := w.Write(append(headerBuf, buf...)); err != nil {
+		lg.L.Error("error writing", zap.Error(err))
+	}
 }
 
 func getRouter() map[uint8]RouteFunc {
@@ -89,6 +116,7 @@ func getRouter() map[uint8]RouteFunc {
 	m[uint8(0)] = exit
 	m[uint8(1)] = ping
 	m[uint8(2)] = action
+	m[uint8(3)] = getActions
 
 	return m
 }

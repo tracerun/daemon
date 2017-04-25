@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/golang/protobuf/proto"
 	"github.com/tracerun/tdb"
 	"github.com/tracerun/tracerun/lg"
 )
@@ -51,6 +52,25 @@ func Start(port uint16, dbFolder string) {
 func stop(s *TCPServer) {
 	s.ln.Close()
 	lg.L.Info("TCP service stopped.")
+}
+
+// WriteErrorMessage to write a message to writer
+func WriteErrorMessage(msg string, w io.Writer) {
+	var errMsg ErrorMessage
+	errMsg.Message = msg
+
+	buf, _ := proto.Marshal(&errMsg)
+	headerBuf := GenerateHeaderBuf(uint16(len(buf)), uint8(255))
+
+	w.Write(append(headerBuf, buf...))
+}
+
+// GenerateHeaderBuf to generate a header buf
+func GenerateHeaderBuf(length uint16, route uint8) []byte {
+	buf := make([]byte, 3)
+	binary.LittleEndian.PutUint16(buf, length)
+	buf[2] = byte(route)
+	return buf
 }
 
 // ReadHeader to read header containing data count and route info
