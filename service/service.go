@@ -16,7 +16,8 @@ const (
 )
 
 var (
-	db *tdb.TDB
+	db       *tdb.TDB
+	stopChan = make(chan bool, 1)
 )
 
 // RouteFunc to route handlers
@@ -34,14 +35,15 @@ func Start(port uint16, dbFolder string) {
 	}
 
 	s := NewTCPServer(port, getRouter())
-
-	if err := s.Start(); err != nil {
-		panic(err)
-	}
+	go s.Start()
 
 	sigs := make(chan os.Signal, 1)
 	signal.Notify(sigs, os.Interrupt)
-	<-sigs
+
+	select {
+	case <-stopChan:
+	case <-sigs:
+	}
 
 	stop(s)
 }
@@ -51,8 +53,8 @@ func stop(s *TCPServer) {
 	lg.L.Info("TCP service stopped.")
 }
 
-// readHeader to read header containing data count and route info
-func readHeader(r io.Reader) (uint16, uint8, error) {
+// ReadHeader to read header containing data count and route info
+func ReadHeader(r io.Reader) (uint16, uint8, error) {
 	byteCount := uint16(0)
 	route := uint8(0)
 
@@ -70,8 +72,8 @@ func readHeader(r io.Reader) (uint16, uint8, error) {
 	return byteCount, route, nil
 }
 
-// readData to read certain amount of bytes
-func readData(r io.Reader, count uint16) ([]byte, error) {
+// ReadData to read certain amount of bytes
+func ReadData(r io.Reader, count uint16) ([]byte, error) {
 	buf := make([]byte, count)
 
 	n, err := io.ReadFull(r, buf)

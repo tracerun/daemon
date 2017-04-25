@@ -57,10 +57,13 @@ func checkActions() {
 }
 
 // ping uint8(0) used to extend readtimeout
-func ping(b []byte, w io.Writer) {}
+func ping(b []byte, w io.Writer) {
+	lg.L.Debug("ping")
+}
 
 // action to receive action income.
 func action(b []byte, w io.Writer) {
+	lg.L.Debug("action")
 	var ac Action
 	if err := proto.Unmarshal(b, &ac); err != nil {
 		lg.L.Error("error parse action", zap.Error(err))
@@ -75,11 +78,17 @@ func action(b []byte, w io.Writer) {
 	go func() { actionChan <- &a }()
 }
 
+func exit(b []byte, w io.Writer) {
+	lg.L.Debug("exit")
+	stopChan <- true
+}
+
 func getRouter() map[uint8]RouteFunc {
 	m := make(map[uint8]RouteFunc)
 
-	m[uint8(0)] = ping
-	m[uint8(1)] = action
+	m[uint8(0)] = exit
+	m[uint8(1)] = ping
+	m[uint8(2)] = action
 
 	return m
 }

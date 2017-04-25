@@ -42,7 +42,7 @@ func (s *UDPServer) handleUDPConn(c *net.UDPConn) {
 
 	for {
 		// read header
-		count, route, err := readHeader(c)
+		count, route, err := ReadHeader(c)
 
 		if err != nil {
 			lg.L.Error("error to read header", zap.Error(err))
@@ -53,7 +53,7 @@ func (s *UDPServer) handleUDPConn(c *net.UDPConn) {
 		// read data
 		var bytes []byte
 		if count > 0 {
-			bytes, err = readData(c, count)
+			bytes, err = ReadData(c, count)
 
 			if err != nil {
 				lg.L.Error("error to read data", zap.Error(err))

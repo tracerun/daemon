@@ -75,7 +75,7 @@ func (s *TCPServer) handleConn(c net.Conn) {
 	for {
 		// read header
 		c.SetReadDeadline(time.Now().Add(readTimeout * time.Second))
-		count, route, err := readHeader(c)
+		count, route, err := ReadHeader(c)
 
 		if err != nil {
 			recordConnError(err)
@@ -87,7 +87,7 @@ func (s *TCPServer) handleConn(c net.Conn) {
 		var bytes []byte
 		if count > 0 {
 			c.SetReadDeadline(time.Now().Add(readTimeout * time.Second))
-			bytes, err = readData(c, count)
+			bytes, err = ReadData(c, count)
 
 			if err != nil {
 				recordConnError(err)
