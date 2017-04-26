@@ -59,9 +59,9 @@ func stop(s *TCPServer) {
 }
 
 // WriteErrorMessage to write a message to writer
-func WriteErrorMessage(msg string, w io.Writer) {
+func WriteErrorMessage(err error, w io.Writer) {
 	var errMsg ErrorMessage
-	errMsg.Message = msg
+	errMsg.Message = err.Error()
 
 	buf, _ := proto.Marshal(&errMsg)
 	headerBuf := GenerateHeaderBuf(uint16(len(buf)), uint8(255))

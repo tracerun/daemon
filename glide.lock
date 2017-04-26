@@ -1,12 +1,12 @@
 hash: fa302340a7743f75d19cdb0f3f46844e8fd3fb55bbd62de21cd6adfbbfbe7e1c
-updated: 2017-04-24T14:17:25.9128482+08:00
+updated: 2017-04-26T16:38:19.7172781+08:00
 imports:
 - name: github.com/boltdb/bolt
   version: e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd
 - name: github.com/drkaka/ulid
   version: a4078d88d430f7f5c443e60820664d0eef7a1cc8
 - name: github.com/gogo/protobuf
-  version: 7efa791bd276fd4db00867cbd982b552627c24cb
+  version: 30433562cfbf487fe1df7cd26c7bab168d2f14d0
   subpackages:
   - proto
 - name: github.com/golang/protobuf
@@ -16,13 +16,13 @@ imports:
 - name: github.com/tracerun/locker
   version: 3d6a08b077973af7fcd359a42568e518fc429dae
 - name: github.com/tracerun/tdb
-  version: 6aa485dc1c7b70f0f50193297390b900e260b34f
+  version: a417719d7f27a7160d6219f7de24c62eb39fa83f
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: go.uber.org/atomic
   version: 4e336646b2ef9fc6e47be8e21594178f98e5ebcf
 - name: go.uber.org/zap
-  version: 1550bc05539134bbf8612a35f34a79ab8bf34ee3
+  version: 6a4e056f2cc954cfec3581729e758909604b3f76
   subpackages:
   - buffer
   - internal/bufferpool
@@ -34,52 +34,22 @@ imports:
   version: a6577fac2d73be281a500b310739095313165611
   subpackages:
   - context
-  - http2
-  - http2/hpack
-  - idna
-  - internal/timeseries
-  - lex/httplex
-  - trace
 - name: golang.org/x/sync
   version: de49d9dcd27d4f764488181bea099dfe6179bcf0
   subpackages:
   - errgroup
-- name: golang.org/x/sys
-  version: ea9bcade75cb975a0b9738936568ab388b845617
-  subpackages:
-  - unix
 - name: google.golang.org/grpc
   version: 8050b9cbc271307e5a716a9d782803d09b0d6f2d
-  subpackages:
-  - codes
-  - credentials
-  - grpclog
-  - internal
-  - keepalive
-  - metadata
-  - naming
-  - peer
-  - stats
-  - tap
-  - transport
 testImports:
-- name: github.com/davecgh/go-spew
-  version: 04cdfd42973bb9c8589fd6a731800cf222fde1a9
-  subpackages:
-  - spew
 - name: github.com/mattn/goveralls
   version: 9d621f6940639bf287ecbb6f585a2c26eeba3bbe
 - name: github.com/pborman/uuid
   version: 1b00554d822231195d1babd97ff4a781231955c9
-- name: github.com/pmezard/go-difflib
-  version: d8ed2627bdf02c080bf22230dbb337003b7aba2d
-  subpackages:
-  - difflib
 - name: github.com/stretchr/testify
   version: 4d4bfba8f1d1027c4fdbe371823030df51419987
   subpackages:
   - assert
 - name: golang.org/x/tools
-  version: c853fd576988aeebd3665f6224972f1379960013
+  version: 1b22574ddb1f9559c014d7aa13416bd6f4aba26b
   subpackages:
   - cover

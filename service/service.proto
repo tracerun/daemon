@@ -15,6 +15,25 @@ message AllActions {
   repeated Act actions = 1;
 }
 
+message Targets {
+  repeated string target = 1;
+}
+
+message SlotRange {
+  string target = 1;
+  uint32 start = 2;
+  uint32 end = 3;
+}
+
+message Slot {
+  uint32 start = 1;
+  uint32 slot = 2;
+}
+
+message Slots {
+  repeated Slot slots = 1;
+}
+
 message ErrorMessage {
   string message = 1;
 }
