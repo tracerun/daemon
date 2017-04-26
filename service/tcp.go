@@ -77,26 +77,12 @@ func (s *TCPServer) handleConn(c net.Conn) {
 	for {
 		// read header
 		c.SetReadDeadline(time.Now().Add(readTimeout * time.Second))
-		count, route, err := ReadHeader(c)
-
+		data, route, err := ReadOne(c)
 		if err != nil {
 			recordConnError(err)
 			break
 		}
-		lg.L.Debug("header", zap.Uint8("route", route), zap.Uint16("count", count))
-
-		// read data
-		var bytes []byte
-		if count > 0 {
-			c.SetReadDeadline(time.Now().Add(readTimeout * time.Second))
-			bytes, err = ReadData(c, count)
-
-			if err != nil {
-				recordConnError(err)
-				break
-			}
-			lg.L.Debug("data", zap.Binary("data", bytes))
-		}
+		lg.L.Debug("data", zap.Uint8("route", route), zap.Binary("data", data))
 
 		// get routed function
 		fn, ok := s.router[route]
@@ -104,7 +90,7 @@ func (s *TCPServer) handleConn(c net.Conn) {
 			lg.L.Warn("not found")
 		} else {
 			lg.L.Debug(runtime.FuncForPC(reflect.ValueOf(fn).Pointer()).Name())
-			fn(bytes, c)
+			fn(data, c)
 		}
 	}
 

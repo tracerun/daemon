@@ -2,6 +2,7 @@ package service
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -17,6 +18,9 @@ const (
 )
 
 var (
+	// ErrDataLength the data length wrong
+	ErrDataLength = errors.New("read data length wrong")
+
 	db       *tdb.TDB
 	stopChan = make(chan bool, 1)
 )
@@ -73,35 +77,31 @@ func GenerateHeaderBuf(length uint16, route uint8) []byte {
 	return buf
 }
 
-// ReadHeader to read header containing data count and route info
-func ReadHeader(r io.Reader) (uint16, uint8, error) {
+// ReadOne to read header containing data count and route info
+func ReadOne(r io.Reader) ([]byte, uint8, error) {
 	byteCount := uint16(0)
 	route := uint8(0)
 
-	buf := make([]byte, headerBytes)
-	n, err := io.ReadFull(r, buf)
+	headerBuf := make([]byte, headerBytes)
+	n, err := io.ReadFull(r, headerBuf)
 	if err != nil {
-		return byteCount, route, err
+		return nil, route, err
 	}
 	if n != headerBytes {
-		return byteCount, route, fmt.Errorf("read header wrong")
+		return nil, route, fmt.Errorf("read header wrong")
 	}
 
-	byteCount = binary.LittleEndian.Uint16(buf)
-	route = uint8(buf[2])
-	return byteCount, route, nil
-}
+	byteCount = binary.LittleEndian.Uint16(headerBuf)
+	route = uint8(headerBuf[2])
 
-// ReadData to read certain amount of bytes
-func ReadData(r io.Reader, count uint16) ([]byte, error) {
-	buf := make([]byte, count)
-
-	n, err := io.ReadFull(r, buf)
+	buf := make([]byte, byteCount)
+	n, err = io.ReadFull(r, buf)
 	if err != nil {
-		return buf, err
+		return nil, route, err
 	}
-	if n != int(count) {
-		return buf, fmt.Errorf("read data length wrong")
+	if n != int(byteCount) {
+		return nil, route, ErrDataLength
 	}
-	return buf, err
+
+	return buf, route, nil
 }

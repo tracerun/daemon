@@ -41,33 +41,20 @@ func (s *UDPServer) handleUDPConn(c *net.UDPConn) {
 	}()
 
 	for {
-		// read header
-		count, route, err := ReadHeader(c)
-
+		// read one request
+		data, route, err := ReadOne(c)
 		if err != nil {
-			lg.L.Error("error to read header", zap.Error(err))
+			lg.L.Error("error to read data", zap.Error(err))
 			break
 		}
-		lg.L.Debug("header", zap.Uint8("route", route), zap.Uint16("count", count))
-
-		// read data
-		var bytes []byte
-		if count > 0 {
-			bytes, err = ReadData(c, count)
-
-			if err != nil {
-				lg.L.Error("error to read data", zap.Error(err))
-				break
-			}
-			lg.L.Debug("data", zap.Binary("data", bytes))
-		}
+		lg.L.Debug("data", zap.Uint8("route", route), zap.Binary("data", data))
 
 		// get routed function
 		fn, ok := s.router[route]
 		if !ok {
 			lg.L.Warn("not found")
 		} else {
-			fn(bytes, c)
+			fn(data, c)
 		}
 	}
 
