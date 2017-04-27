@@ -21,7 +21,6 @@ var (
 
 type act struct {
 	target string
-	active bool
 	ts     uint32
 }
 
@@ -42,8 +41,8 @@ func receiveActions() {
 }
 
 func addOneAction(a *act) {
-	lg.L.Debug("action from Q", zap.Any("target", a.target), zap.Bool("active", a.active), zap.Uint32("ts", a.ts))
-	if err := db.AddAction(a.target, a.active, a.ts); err != nil {
+	lg.L.Debug("action from Q", zap.Any("target", a.target), zap.Uint32("ts", a.ts))
+	if err := db.AddAction(a.target, a.ts); err != nil {
 		lg.L.Error("error add action", zap.Error(err))
 	}
 }
@@ -66,18 +65,13 @@ func ping(b []byte, w io.Writer) {}
 
 // action uint8(2) to receive action income.
 func action(b []byte, w io.Writer) {
-	var ac Action
-	if err := proto.Unmarshal(b, &ac); err != nil {
-		lg.L.Error("error parse action", zap.Error(err))
-	}
-
-	var a act
-	a.target = ac.Target
-	a.active = ac.Active
-	a.ts = uint32(time.Now().Unix())
-
 	// enqueue
-	go func() { actionChan <- &a }()
+	go func() {
+		actionChan <- &act{
+			target: string(b),
+			ts:     uint32(time.Now().Unix()),
+		}
+	}()
 }
 
 // getActions uint8(3) to get all actions
@@ -168,6 +162,78 @@ func getSlots(b []byte, w io.Writer) {
 	}
 }
 
+// getMeta uint8(6) to get meta information
+func getMeta(b []byte, w io.Writer) {
+	var meta Meta
+
+	v, err := db.Version()
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+	meta.Version = uint32(v)
+
+	tag, err := db.Tag()
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+	meta.Tag = tag
+
+	cre, err := db.CreateAt()
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+	meta.CreateAt = cre
+
+	host, err := db.Host()
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+	meta.Host = host
+
+	username, err := db.Username()
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+	meta.Username = username
+
+	arch, err := db.Arch()
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+	meta.Arch = arch
+
+	osInfo, err := db.OS()
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+	meta.Os = osInfo
+
+	offset, err := db.ZoneOffset()
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+	meta.ZoneOffset = offset
+
+	buf, err := proto.Marshal(&meta)
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+
+	headerBuf := GenerateHeaderBuf(uint16(len(buf)), uint8(6))
+	if _, err := w.Write(append(headerBuf, buf...)); err != nil {
+		lg.L.Error("error writing", zap.Error(err))
+	}
+}
+
 func getRouter() map[uint8]RouteFunc {
 	m := make(map[uint8]RouteFunc)
 
@@ -177,6 +243,7 @@ func getRouter() map[uint8]RouteFunc {
 	m[uint8(3)] = getActions
 	m[uint8(4)] = getTargets
 	m[uint8(5)] = getSlots
+	m[uint8(6)] = getMeta
 
 	return m
 }

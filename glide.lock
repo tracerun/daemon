@@ -1,8 +1,10 @@
 hash: fa302340a7743f75d19cdb0f3f46844e8fd3fb55bbd62de21cd6adfbbfbe7e1c
-updated: 2017-04-26T16:38:19.7172781+08:00
+updated: 2017-04-27T14:01:54.8569904+08:00
 imports:
 - name: github.com/boltdb/bolt
   version: e9cf4fae01b5a8ff89d0ec6b32f0d9c9f79aefdd
+- name: github.com/drkaka/lg
+  version: 699b294366df5a3f4ed00c92ed3200acde983a50
 - name: github.com/drkaka/ulid
   version: a4078d88d430f7f5c443e60820664d0eef7a1cc8
 - name: github.com/gogo/protobuf
@@ -13,10 +15,12 @@ imports:
   version: c9c7427a2a70d2eb3bafa0ab2dc163e45f143317
   subpackages:
   - proto
+- name: github.com/satori/go.uuid
+  version: 879c5887cd475cd7864858769793b2ceb0d44feb
 - name: github.com/tracerun/locker
   version: 3d6a08b077973af7fcd359a42568e518fc429dae
 - name: github.com/tracerun/tdb
-  version: a417719d7f27a7160d6219f7de24c62eb39fa83f
+  version: 3de7fc262707ca41648f7688ebeee257dbd5fd0c
 - name: github.com/urfave/cli
   version: 0bdeddeeb0f650497d603c4ad7b20cfe685682f6
 - name: go.uber.org/atomic
@@ -50,6 +54,6 @@ testImports:
   subpackages:
   - assert
 - name: golang.org/x/tools
-  version: 1b22574ddb1f9559c014d7aa13416bd6f4aba26b
+  version: 3aa1caa08a9813c4635689965b58bd050828f0bf
   subpackages:
   - cover

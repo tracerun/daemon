@@ -1,9 +1,15 @@
 syntax = "proto3";
 package service;
 
-message Action {
-  string target = 1;
-  bool active = 2;
+message Meta {
+  uint32 version = 1;
+  string tag = 2;
+  uint32 create_at = 3;
+  string host = 4;
+  string username = 5;
+  string arch = 6;
+  string os = 7;
+  int32 zone_offset = 8;
 }
 
 message AllActions {
