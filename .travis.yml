@@ -1,7 +1,6 @@
 language: go
 sudo: false
 go:
-- 1.7.x
 - 1.8.x
 env:
   global:
@@ -27,6 +26,5 @@ deploy:
   file: builds/*
   on:
     tags: true
-    go: '1.8.x'
 before_deploy: 
   - ./build.sh $TRAVIS_TAG
