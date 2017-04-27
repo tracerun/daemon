@@ -1,0 +1,29 @@
+package: github.com/tracerun/tracerun
+import:
+- package: github.com/urfave/cli
+  version: ^1.19.1
+- package: google.golang.org/grpc
+  version: ^1.2.0
+- package: golang.org/x/net
+  subpackages:
+  - context
+- package: github.com/golang/protobuf
+  subpackages:
+  - proto
+- package: go.uber.org/zap
+  version: ^1.0
+  subpackages:
+  - zapcore
+- package: github.com/boltdb/bolt
+- package: github.com/drkaka/ulid
+- package: github.com/tracerun/tdb
+  version: "*"
+testImport:
+- package: github.com/stretchr/testify
+  subpackages:
+  - assert
+- package: github.com/mattn/goveralls
+- package: github.com/pborman/uuid
+- package: golang.org/x/tools
+  subpackages:
+  - cover

@@ -8,8 +8,8 @@
     },
     "tasks": [
         {
-            "taskName": "run",
-            "args": ["main.go"],
+            "taskName": "build",
+            "args": ["-o", "tracerun.exe", "main.go"],
             "isBuildCommand": true
         },
         {

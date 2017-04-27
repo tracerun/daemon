@@ -10,6 +10,8 @@
     
     "go.buildOnSave": true,
     "go.lintOnSave": true,
+    "go.lintTool": "golint",
+    "go.docsTool": "gogetdoc",
     "go.vetOnSave": true,
     "go.buildFlags": [],
     "go.lintFlags": [],

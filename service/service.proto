@@ -1,0 +1,45 @@
+syntax = "proto3";
+package service;
+
+message Meta {
+  uint32 version = 1;
+  string tag = 2;
+  uint32 create_at = 3;
+  string host = 4;
+  string username = 5;
+  string arch = 6;
+  string os = 7;
+  int32 zone_offset = 8;
+}
+
+message AllActions {
+  message Act {
+    string target = 1;
+    uint32 start = 2;
+    uint32 last = 3;
+  }
+  repeated Act actions = 1;
+}
+
+message Targets {
+  repeated string target = 1;
+}
+
+message SlotRange {
+  string target = 1;
+  uint32 start = 2;
+  uint32 end = 3;
+}
+
+message Slot {
+  uint32 start = 1;
+  uint32 slot = 2;
+}
+
+message Slots {
+  repeated Slot slots = 1;
+}
+
+message ErrorMessage {
+  string message = 1;
+}
