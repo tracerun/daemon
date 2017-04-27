@@ -63,107 +63,10 @@ func exit(b []byte, w io.Writer) {
 // ping uint8(1) used to extend readtimeout
 func ping(b []byte, w io.Writer) {}
 
-// action uint8(2) to receive action income.
-func action(b []byte, w io.Writer) {
-	// enqueue
-	go func() {
-		actionChan <- &act{
-			target: string(b),
-			ts:     uint32(time.Now().Unix()),
-		}
-	}()
-}
-
-// getActions uint8(3) to get all actions
-func getActions(b []byte, w io.Writer) {
-	var all AllActions
-	targets, starts, lasts, err := db.GetActions()
-	if err != nil {
-		lg.L.Error("error getting actions", zap.Error(err))
-		WriteErrorMessage(err, w)
-		return
-	}
-
-	for i := 0; i < len(targets); i++ {
-		all.Actions = append(all.Actions, &AllActions_Act{
-			Target: targets[i],
-			Start:  starts[i],
-			Last:   lasts[i],
-		})
-	}
-
-	buf, err := proto.Marshal(&all)
-	if err != nil {
-		WriteErrorMessage(err, w)
-		return
-	}
-
-	headerBuf := GenerateHeaderBuf(uint16(len(buf)), uint8(3))
-	if _, err := w.Write(append(headerBuf, buf...)); err != nil {
-		lg.L.Error("error writing", zap.Error(err))
-	}
-}
-
-// getTargets uint8(4) to get all targets
-func getTargets(b []byte, w io.Writer) {
-	targets := db.GetTargets()
-
-	var all Targets
-	all.Target = targets
-
-	buf, err := proto.Marshal(&all)
-	if err != nil {
-		WriteErrorMessage(err, w)
-		return
-	}
-
-	headerBuf := GenerateHeaderBuf(uint16(len(buf)), uint8(4))
-	if _, err := w.Write(append(headerBuf, buf...)); err != nil {
-		lg.L.Error("error writing", zap.Error(err))
-	}
-}
-
-// getSlots uint8(5) to get slots of a target in a range
-func getSlots(b []byte, w io.Writer) {
-	var rang SlotRange
-	if err := proto.Unmarshal(b, &rang); err != nil {
-		WriteErrorMessage(err, w)
-		return
-	}
-
-	startsResult, slotsResult, err := db.GetSlots(rang.Target, rang.Start, rang.End)
-	if err != nil {
-		WriteErrorMessage(err, w)
-		return
-	}
-	var slots []*Slot
-	for i := 0; i < len(startsResult); i++ {
-		oneStarts, oneSlots := startsResult[i], slotsResult[i]
-		for j := 0; j < len(oneStarts); j++ {
-			slots = append(slots, &Slot{
-				Start: oneStarts[j],
-				Slot:  oneSlots[j],
-			})
-		}
-	}
-
-	var all Slots
-	all.Slots = slots
-
-	buf, err := proto.Marshal(&all)
-	if err != nil {
-		WriteErrorMessage(err, w)
-		return
-	}
-
-	headerBuf := GenerateHeaderBuf(uint16(len(buf)), uint8(5))
-	if _, err := w.Write(append(headerBuf, buf...)); err != nil {
-		lg.L.Error("error writing", zap.Error(err))
-	}
-}
-
-// getMeta uint8(6) to get meta information
+// getMeta uint8(2) to get meta information
 func getMeta(b []byte, w io.Writer) {
+	thisRoute := uint8(2)
+
 	var meta Meta
 
 	v, err := db.Version()
@@ -228,7 +131,112 @@ func getMeta(b []byte, w io.Writer) {
 		return
 	}
 
-	headerBuf := GenerateHeaderBuf(uint16(len(buf)), uint8(6))
+	headerBuf := GenerateHeaderBuf(uint16(len(buf)), thisRoute)
+	if _, err := w.Write(append(headerBuf, buf...)); err != nil {
+		lg.L.Error("error writing", zap.Error(err))
+	}
+}
+
+// action uint8(10) to receive action income.
+func action(b []byte, w io.Writer) {
+	// enqueue
+	go func() {
+		actionChan <- &act{
+			target: string(b),
+			ts:     uint32(time.Now().Unix()),
+		}
+	}()
+}
+
+// getActions uint8(11) to get all actions
+func getActions(b []byte, w io.Writer) {
+	thisRoute := uint8(11)
+
+	var all AllActions
+	targets, starts, lasts, err := db.GetActions()
+	if err != nil {
+		lg.L.Error("error getting actions", zap.Error(err))
+		WriteErrorMessage(err, w)
+		return
+	}
+
+	for i := 0; i < len(targets); i++ {
+		all.Actions = append(all.Actions, &AllActions_Act{
+			Target: targets[i],
+			Start:  starts[i],
+			Last:   lasts[i],
+		})
+	}
+
+	buf, err := proto.Marshal(&all)
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+
+	headerBuf := GenerateHeaderBuf(uint16(len(buf)), thisRoute)
+	if _, err := w.Write(append(headerBuf, buf...)); err != nil {
+		lg.L.Error("error writing", zap.Error(err))
+	}
+}
+
+// getTargets uint8(20) to get all targets
+func getTargets(b []byte, w io.Writer) {
+	thisRoute := uint8(20)
+
+	targets := db.GetTargets()
+
+	var all Targets
+	all.Target = targets
+
+	buf, err := proto.Marshal(&all)
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+
+	headerBuf := GenerateHeaderBuf(uint16(len(buf)), thisRoute)
+	if _, err := w.Write(append(headerBuf, buf...)); err != nil {
+		lg.L.Error("error writing", zap.Error(err))
+	}
+}
+
+// getSlots uint8(21) to get slots of a target in a range
+func getSlots(b []byte, w io.Writer) {
+	thisRoute := uint8(21)
+
+	var rang SlotRange
+	if err := proto.Unmarshal(b, &rang); err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+
+	startsResult, slotsResult, err := db.GetSlots(rang.Target, rang.Start, rang.End)
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+	var slots []*Slot
+	for i := 0; i < len(startsResult); i++ {
+		oneStarts, oneSlots := startsResult[i], slotsResult[i]
+		for j := 0; j < len(oneStarts); j++ {
+			slots = append(slots, &Slot{
+				Start: oneStarts[j],
+				Slot:  oneSlots[j],
+			})
+		}
+	}
+
+	var all Slots
+	all.Slots = slots
+
+	buf, err := proto.Marshal(&all)
+	if err != nil {
+		WriteErrorMessage(err, w)
+		return
+	}
+
+	headerBuf := GenerateHeaderBuf(uint16(len(buf)), thisRoute)
 	if _, err := w.Write(append(headerBuf, buf...)); err != nil {
 		lg.L.Error("error writing", zap.Error(err))
 	}
@@ -239,11 +247,11 @@ func getRouter() map[uint8]RouteFunc {
 
 	m[uint8(0)] = exit
 	m[uint8(1)] = ping
-	m[uint8(2)] = action
-	m[uint8(3)] = getActions
-	m[uint8(4)] = getTargets
-	m[uint8(5)] = getSlots
-	m[uint8(6)] = getMeta
+	m[uint8(2)] = getMeta
+	m[uint8(10)] = action
+	m[uint8(11)] = getActions
+	m[uint8(20)] = getTargets
+	m[uint8(21)] = getSlots
 
 	return m
 }
