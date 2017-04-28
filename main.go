@@ -32,6 +32,11 @@ func main() {
 			Value: "tracerun",
 			Usage: "Path for db folder.",
 		},
+		cli.UintFlag{
+			Name:  "p",
+			Value: 19869,
+			Usage: "TCP port.",
+		},
 	}
 
 	app.Before = func(c *cli.Context) error {
@@ -43,8 +48,8 @@ func main() {
 
 	app.Commands = []cli.Command{
 		command.NewStartCMD(),
-		// command.NewAddCMD(),
-		// command.NewShowCMD(),
+		command.NewAddCMD(),
+		command.NewListCMD(),
 	}
 
 	app.Run(os.Args)

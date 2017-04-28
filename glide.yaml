@@ -18,6 +18,8 @@ import:
 - package: github.com/drkaka/ulid
 - package: github.com/tracerun/tdb
   version: "*"
+- package: github.com/tracerun/clientgo
+  version: "*"
 testImport:
 - package: github.com/stretchr/testify
   subpackages:
